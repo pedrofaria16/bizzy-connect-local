@@ -1,4 +1,5 @@
 import { MapPin, Star, Clock, DollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +11,6 @@ interface PostCardProps {
   avatar?: string;
   rating: number;
   category: string;
-  categoryImage: string;
   title: string;
   description: string;
   price?: string;
@@ -25,7 +25,6 @@ const PostCard = ({
   avatar,
   rating,
   category,
-  categoryImage,
   title,
   description,
   price,
@@ -33,28 +32,39 @@ const PostCard = ({
   distance,
   time,
 }: PostCardProps) => {
+  const navigate = useNavigate();
+
   return (
-    <Card className="p-6 hover:shadow-lg transition-all duration-300 border-border bg-card">
+    <Card 
+      className="p-6 hover:shadow-lg transition-all duration-300 border-border bg-card cursor-pointer"
+      onClick={() => navigate("/post/1")}
+    >
       <div className="flex items-start gap-4">
-        <div className="flex flex-col items-center gap-3">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={avatar} />
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {username[0].toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          
-          <img 
-            src={categoryImage} 
-            alt={category}
-            className="h-16 w-16 rounded-lg object-cover border-2 border-border"
-          />
-        </div>
+        <Avatar 
+          className="h-12 w-12 cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate("/profile");
+          }}
+        >
+          <AvatarImage src={avatar} />
+          <AvatarFallback className="bg-primary text-primary-foreground">
+            {username[0].toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
         
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground">{username}</h3>
+              <h3 
+                className="font-semibold text-foreground cursor-pointer hover:text-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/profile");
+                }}
+              >
+                {username}
+              </h3>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <Star className="h-4 w-4 fill-primary text-primary" />
                 <span className="font-medium text-darker-gray">{rating.toFixed(1)}</span>
@@ -95,10 +105,23 @@ const PostCard = ({
           </div>
           
           <div className="flex gap-2">
-            <Button className="flex-1 bg-primary hover:bg-primary-dark">
+            <Button 
+              className="flex-1 bg-primary hover:bg-primary-dark"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/chat");
+              }}
+            >
               {type === "offer" ? "Contratar" : "Candidatar-se"}
             </Button>
-            <Button variant="outline" className="flex-1 border-border hover:bg-secondary">
+            <Button 
+              variant="outline" 
+              className="flex-1 border-border hover:bg-secondary"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/profile");
+              }}
+            >
               Ver Perfil
             </Button>
           </div>

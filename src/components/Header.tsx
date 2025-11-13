@@ -1,13 +1,19 @@
 import { Search, Bell, MessageCircle, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Header = () => {
+  const navigate = useNavigate();
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
-          <h1 className="text-2xl font-bold text-primary">
+          <h1 
+            className="text-2xl font-bold text-primary cursor-pointer"
+            onClick={() => navigate("/")}
+          >
             Bizzy
           </h1>
           <div className="hidden md:flex relative w-64 lg:w-96">
@@ -20,14 +26,29 @@ const Header = () => {
         </div>
         
         <nav className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative hover:bg-secondary">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="relative hover:bg-secondary"
+            onClick={() => navigate("/notifications")}
+          >
             <Bell className="h-5 w-5 text-darker-gray" />
             <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full"></span>
           </Button>
-          <Button variant="ghost" size="icon" className="hover:bg-secondary">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-secondary"
+            onClick={() => navigate("/chat")}
+          >
             <MessageCircle className="h-5 w-5 text-darker-gray" />
           </Button>
-          <Button variant="ghost" size="icon" className="hover:bg-secondary">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="hover:bg-secondary"
+            onClick={() => navigate("/profile")}
+          >
             <User className="h-5 w-5 text-darker-gray" />
           </Button>
         </nav>
