@@ -3,12 +3,20 @@ import FilterBar from "@/components/FilterBar";
 import PostCard from "@/components/PostCard";
 import CreatePostButton from "@/components/CreatePostButton";
 
+import limpezaImg from "@/assets/categories/limpeza.jpg";
+import construcaoImg from "@/assets/categories/construcao.jpg";
+import tecnologiaImg from "@/assets/categories/tecnologia.jpg";
+import belezaImg from "@/assets/categories/beleza.jpg";
+import jardnagemImg from "@/assets/categories/jardinagem.jpg";
+import transporteImg from "@/assets/categories/transporte.jpg";
+
 const mockPosts = [
   {
     type: "offer" as const,
     username: "Maria Silva",
     rating: 4.8,
     category: "Limpeza",
+    categoryImage: limpezaImg,
     title: "Serviços de Limpeza Residencial",
     description: "Ofereço serviços completos de limpeza residencial com experiência de 5 anos. Trabalho com produtos de qualidade e garanto sua satisfação.",
     price: "R$ 120/dia",
@@ -21,6 +29,7 @@ const mockPosts = [
     username: "João Santos",
     rating: 4.5,
     category: "Construção",
+    categoryImage: construcaoImg,
     title: "Preciso de Pedreiro para Reforma",
     description: "Busco profissional experiente para reforma de banheiro. Serviço inclui troca de azulejos e instalações hidráulicas.",
     price: "R$ 200/dia",
@@ -33,6 +42,7 @@ const mockPosts = [
     username: "Ana Costa",
     rating: 5.0,
     category: "Tecnologia",
+    categoryImage: tecnologiaImg,
     title: "Manutenção de Computadores",
     description: "Técnica em informática oferece serviços de manutenção, formatação e upgrade de computadores. Atendimento rápido e eficiente.",
     price: "R$ 80/serviço",
@@ -45,6 +55,7 @@ const mockPosts = [
     username: "Carlos Oliveira",
     rating: 4.7,
     category: "Jardinagem",
+    categoryImage: jardnagemImg,
     title: "Jardineiro Profissional",
     description: "Serviços de jardinagem, poda de árvores, manutenção de gramados e paisagismo. Trabalho com paixão e dedicação.",
     price: "R$ 150/dia",
@@ -57,6 +68,7 @@ const mockPosts = [
     username: "Paula Mendes",
     rating: 4.9,
     category: "Beleza",
+    categoryImage: belezaImg,
     title: "Manicure para Domicílio",
     description: "Procuro manicure que faça atendimento em domicílio. Preciso de serviço regular, 2x por semana.",
     price: "R$ 60/sessão",
@@ -69,6 +81,7 @@ const mockPosts = [
     username: "Roberto Lima",
     rating: 4.6,
     category: "Transporte",
+    categoryImage: transporteImg,
     title: "Motorista Particular",
     description: "Motorista profissional com 10 anos de experiência. Ofereço serviços de transporte executivo e viagens intermunicipais.",
     price: "R$ 35/hora",
