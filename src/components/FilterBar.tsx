@@ -16,10 +16,10 @@ const categories = [
 
 const FilterBar = () => {
   return (
-    <div className="sticky top-16 z-40 bg-background border-b border-border py-3">
+    <div className="sticky top-16 z-40 bg-card border-b border-border py-3">
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          <Button variant="outline" size="sm" className="gap-2 shrink-0">
+          <Button variant="outline" size="sm" className="gap-2 shrink-0 border-border hover:bg-secondary">
             <Filter className="h-4 w-4" />
             Filtros
           </Button>
@@ -33,7 +33,7 @@ const FilterBar = () => {
               className={`cursor-pointer shrink-0 px-4 py-2 text-sm transition-all hover:scale-105 ${
                 index === 0 
                   ? "bg-primary text-primary-foreground hover:bg-primary-dark" 
-                  : "hover:bg-secondary"
+                  : "hover:bg-secondary border-border text-darker-gray"
               }`}
             >
               {category}
@@ -42,12 +42,12 @@ const FilterBar = () => {
           
           <div className="h-8 w-px bg-border shrink-0" />
           
-          <Button variant="outline" size="sm" className="gap-2 shrink-0">
+          <Button variant="outline" size="sm" className="gap-2 shrink-0 border-border hover:bg-secondary">
             <MapPin className="h-4 w-4" />
             Proximidade
           </Button>
           
-          <Button variant="outline" size="sm" className="gap-2 shrink-0">
+          <Button variant="outline" size="sm" className="gap-2 shrink-0 border-border hover:bg-secondary">
             <DollarSign className="h-4 w-4" />
             Preço
           </Button>

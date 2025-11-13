@@ -43,6 +43,8 @@ export default {
           light: "hsl(var(--accent-light))",
           dark: "hsl(var(--accent-dark))",
         },
+        'dark-gray': "hsl(var(--dark-gray))",
+        'darker-gray': "hsl(var(--darker-gray))",
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
