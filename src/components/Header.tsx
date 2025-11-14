@@ -1,10 +1,13 @@
 import { Search, Bell, MessageCircle, User } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Header = () => {
   const navigate = useNavigate();
+  const [menuAberto, setMenuAberto] = useState(false);
+  const abrirMenu = () => setMenuAberto((prev) => !prev);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -51,6 +54,33 @@ const Header = () => {
           >
             <User className="h-5 w-5 text-darker-gray" />
           </Button>
+
+          {/* Menu toggle + menu container (relative) */}
+          <div className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="hover:bg-secondary"
+              onClick={abrirMenu}
+              aria-label="Abrir opções"
+            >
+              {/* Simple three-bar hamburger (black) */}
+              <span className="flex flex-col justify-between h-4 w-4">
+                <span className="block h-[2px] bg-black rounded" />
+                <span className="block h-[2px] bg-black rounded" />
+                <span className="block h-[2px] bg-black rounded" />
+              </span>
+            </Button>
+
+            {/* Menu opções (lado direito) */}
+            <div className={`menu-opcoes${menuAberto ? " ativo" : ""}`}>
+              <ul>
+                <a onClick={() => { setMenuAberto(false); navigate("/sobre-nos"); }}><li>Sobre nós</li></a>
+                <a onClick={() => { setMenuAberto(false); navigate("/politica-de-privacidade"); }}><li>Política e Privacidade</li></a>
+                <a onClick={() => { setMenuAberto(false); navigate("/termos-de-uso"); }}><li>Termos de Uso</li></a>
+              </ul>
+            </div>
+          </div>
         </nav>
       </div>
     </header>

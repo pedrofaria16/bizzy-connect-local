@@ -136,3 +136,29 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Menu opções (header) */
+@layer components {
+  .menu-opcoes {
+  /* fixed width so the background size is predictable (narrow column) */
+  @apply absolute left-0 top-full mt-2 w-48 bg-card rounded-md shadow-md border border-border transform origin-top-left scale-95 opacity-0 pointer-events-none;
+    z-index: 60;
+    transition: var(--transition-smooth);
+  }
+
+  .menu-opcoes ul {
+    @apply flex flex-col items-start m-0 p-0 list-none;
+  }
+
+  .menu-opcoes ul li {
+    @apply m-0 p-0 w-full;
+  }
+
+  .menu-opcoes ul a {
+    @apply inline-block w-full text-foreground px-3 py-2 text-base text-left rounded hover:bg-secondary/60 cursor-pointer; /* compact padding, site default font size */
+  }
+
+  .menu-opcoes.ativo {
+    @apply scale-100 opacity-100 pointer-events-auto;
+  }
+}

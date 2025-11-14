@@ -1,0 +1,87 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Mukta Malar" , sans-serif;
+}
+
+.titulo {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #000000;
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e2e2e2;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.062);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 20px 20px 20px 20px;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: white;
+}
+
+.back-link{
+    text-decoration: none;
+    color: #000000;
+    cursor: pointer;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.conteudo-scroll {
+    max-height: 100vh; /* Define a altura máxima do conteúdo */
+    overflow-y: auto; /* Habilita a rolagem vertical */
+  }
+
+
+.textoPolitica {
+    font-size: 1rem;
+    color: #000000;
+    line-height: 1.6;
+    padding: 50px 20px 40px 20px;
+    margin: 0px auto;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 35%;
+    text-align: justify;
+    margin-top: 50px;
+}
+
+ul {
+    width: 80%;
+    margin: auto;
+}
+
+.paragrafo {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#check {
+    list-style-type: none;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+    .textoPolitica {
+        width: 70%;
+        padding: 60px 0px 20px 0px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .textoPolitica {
+        width: 60%;
+        padding: 60px 0px 20px 0px;
+    }
+}

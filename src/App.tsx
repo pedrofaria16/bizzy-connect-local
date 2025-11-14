@@ -9,7 +9,11 @@ import Profile from "./pages/Profile";
 import PostDetails from "./pages/PostDetails";
 import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
+import SobreNos from "./pages/SobreNos";
 import NotFound from "./pages/NotFound";
+import PoliticaDePrivacidade from "./components/politica-de-privacidade";
+import TermosDeUso from "./components/termos-de-uso";
+import LandingPage from "./pages/LandingPage";
 
 const queryClient = new QueryClient();
 
@@ -20,9 +24,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/feed" element={<Index />} />
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/sobre-nos" element={<SobreNos />} />
+          <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
+          <Route path="/termos-de-uso" element={<TermosDeUso />} />
           <Route path="/post/:id" element={<PostDetails />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/notifications" element={<Notifications />} />

@@ -1,0 +1,132 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Mukta Malar', sans-serif;
+}
+
+.footer {
+  background-color: #262626;
+  padding: 30px 0;
+  color: white;
+}
+
+.footer-container {
+  display: flex;
+  justify-content: center;
+  gap: 200px;
+  flex-wrap: wrap;
+}
+
+.footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* uniformiza o espaçamento entre textos */
+  min-width: 150px;
+}
+
+.footer-col h1 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.footer-col h1::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -3px;
+  width: 100%;       /* linha acompanha o tamanho do título */
+  max-width: 160px;  /* limite para não ficar gigante */
+  height: 2px;
+  background-color: orange;
+}
+
+.sobre-nos {
+  text-decoration: underline;
+}
+
+.atend {
+  text-decoration: none;
+}
+
+.telefone-footer {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.6;
+  font-family: 'Mukta Malar', sans-serif;
+}
+
+.footer-col a {
+  font-size: 16px;
+  color: white;
+}
+
+.footer-col a:hover {
+  text-decoration: underline;
+}
+
+/* Logo padrão */
+.footer-col img[alt="Logo"] {
+  width: 70px;       /* tamanho reduzido */
+  display: block;
+}
+
+.social-icons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0px -23px 0px 0px;
+}
+
+.social-icons img {
+  width: 50px; /* deixei os ícones um pouco menores p/ harmonizar */
+}
+
+.footer-col .copyright {
+  font-size: small;
+  margin-top: 5px;
+}
+
+/* Responsividade para telas até 768px */
+@media (max-width: 768px) {
+  .footer {
+    padding: 15px 0;
+  }
+
+  .footer-container {
+    justify-content: space-between;
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 5vw;
+  }
+
+  .footer-col img[alt="Logo"] {
+    width: 50px; /* menor ainda em telas menores */
+    margin: 5px 0 0 0;
+  }
+
+  .social-icons img {
+    width: 40px; /* ajusta os ícones também */
+  }
+
+  .footer-col .copyright {
+    font-size: x-small;
+  }
+}
+
+@media (max-width: 1024px) {
+  .footer {
+    padding: 15px 0;
+  }
+
+  .footer-container {
+    justify-content: space-between;
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 5vw;
+  }
+
+}
