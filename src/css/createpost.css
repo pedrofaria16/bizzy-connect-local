@@ -1,0 +1,32 @@
+/* styles for CreatePost page */
+
+/* Date input styling to match site: rounded, subtle orange focus */
+.createpost-date {
+	border-radius: var(--radius);
+	border: 1px solid hsl(var(--border));
+	background: hsl(var(--secondary));
+	padding: 0.5rem 0.75rem;
+	height: 3rem;
+	transition: box-shadow .14s ease, border-color .14s ease;
+}
+.createpost-date:focus {
+	outline: none;
+	box-shadow: 0 0 0 4px rgba(255, 159, 67, 0.12); /* subtle orange glow */
+	border-color: hsl(var(--primary));
+}
+
+/* Make description fixed-size and non-resizable */
+.createpost-description {
+	resize: none;
+	max-height: 10rem;
+	min-height: 8rem;
+}
+
+/* Align calendar icon similar to other inputs */
+.createpost-calendar-icon {
+	position: absolute;
+	left: 0.75rem;
+	top: 50%;
+	transform: translateY(-50%);
+	color: hsl(var(--muted-foreground));
+}

@@ -1,3 +1,4 @@
+import "../css/postdetails.css";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, MapPin, Star, Clock, DollarSign, MessageCircle, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -96,7 +97,7 @@ const PostDetails = () => {
 
           <div className="flex gap-3">
             <Button 
-              className="flex-1 bg-primary hover:bg-primary-dark"
+              className="flex-1 bg-primary hover:bg-primary-light"
               onClick={() => navigate("/chat")}
             >
               <MessageCircle className="h-4 w-4 mr-2" />

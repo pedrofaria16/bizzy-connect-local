@@ -1,3 +1,4 @@
+import "../css/notifications.css";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, MessageCircle, Star, Briefcase, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -1,0 +1,350 @@
+/* ===== Chips de serviços ===== */
+.servicos-chips-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 4px;
+}
+.servico-chip {
+    background: #f3f3f3;
+    border: 1.5px solid #FF8800;
+    color: #FF8800;
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+.servico-chip-selected {
+    background: #FF8800;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(255,136,0,0.12);
+}
+.servico-chip:hover {
+    background: #ffe2c2;
+    color: #e67a00;
+}
+
+/* ===== Upload de foto estilizado ===== */
+.foto-upload-group {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-top: 4px;
+    max-width: 350px;
+    flex-wrap: wrap;
+}
+.foto-upload-btn {
+    background: #FF8800;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 44px;
+    min-width: 120px;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+.foto-upload-btn:hover {
+    background: #e67a00;
+}
+.foto-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #FF8800;
+    box-shadow: 0 2px 8px rgba(255,136,0,0.10);
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ===== Layout principal ===== */
+.body-cadastro {
+    width: 100%;
+    height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('../assets/img/fundo-login.svg');
+    background-position: 0 -60px;
+    overflow: hidden;
+}
+
+.container-cadastro {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.flex-cadastro {
+    display: flex;
+    justify-content: center;
+    align-items: stretch; /* make children the same height */
+    width: 100%;
+    gap: 32px;
+    font-family: 'Mukta Malar';
+}
+
+/* ===== Imagem lateral ===== */
+.cadastro-img {
+    /* make image a flexible column on the left */
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    left: -10%;
+    margin: 0;
+}
+
+.cadastro-img img {
+    height: auto;
+    display: block;
+    object-fit: contain;
+}
+
+/* ===== Formulário ===== */
+.form-cadastro {
+    /* right column with centered form content */
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 22px;
+    margin: 0;
+    width: 80%;
+    margin-top: 13%;
+}
+
+.cadastro-header {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#title-cadastro {
+    font-size: 45px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.cadastro-subtitle {
+    color: #666;
+    font-size: 16px;
+    font-weight: 400;
+    margin-bottom: 0;
+}
+
+/* ===== Mensagem de erro ===== */
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fee;
+    color: #c33;
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid #c33;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.error-message i {
+    font-size: 18px;
+}
+
+/* ===== Inputs ===== */
+.input-group { 
+    margin-bottom: 5px; 
+    display: flex;
+    flex-direction: column;
+}
+
+.input-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.input-label i {
+    color: #FF8800;
+    font-size: 16px;
+}
+
+.input-cadastro {
+    width: 450px;
+    max-width: 100%;
+    height: 45px;
+    padding: 12px 10px;
+    border: none;
+    background: #EDECEC;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.input-cadastro:focus {
+    outline: none;
+    background: #f0f0f0;
+    box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.2);
+}
+
+/* ===== Input de senha ===== */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    max-width: 100%;
+}
+
+.password-input-wrapper .input-cadastro {
+    padding-right: 45px; /* espaço para o ícone */
+    /* restaurar largura fixa do campo de senha como antes, mas permitir reduzir em telas menores */
+    width: 450px;
+    max-width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+    border-radius: 4px;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover { color: #FF8800; }
+
+/* ===== Confirmações ===== */
+.flex-confirm {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.pass-circles {
+    display: flex;
+    justify-content: center;
+    width: 50px;
+    gap: 15px;
+}
+
+.passCircle {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #D9D9D9;
+}
+
+.flex-confirm-esquerda a {
+    text-decoration: none;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.flex-confirm-esquerda a:visited { color: #333; }
+.flex-confirm-esquerda:hover { color: #FF8800; cursor: pointer; }
+
+.link-cadastro i { font-size: 16px; }
+
+/* ===== Botões ===== */
+#continuar-cadastro,
+#terminar-cadastro {
+    border: none;
+    background: #FF8800;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#continuar-cadastro {
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#continuar-cadastro:hover {
+    background: #e67a00;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 136, 0, 0.3);
+}
+
+#terminar-cadastro {
+    padding: 6px 30px;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+#title-cadastro { font-size: 45px; }
+.title-input { font-weight: 600; }
+.active { background: #FF8800; }
+
+/* ===== Footer ===== */
+.cadastro-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.cadastro-footer p {
+    color: #666;
+    font-size: 14px;
+}
+
+.link-login {
+    color: #FF8800;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.3s ease;
+}
+
+.link-login:hover { color: #e67a00; }
+.link-login i { font-size: 14px; }
+
+/* ===== Responsividade ===== */
+@media (max-width: 425px) {
+    .body-cadastro { background-position: center top; }
+}
+
+@media (max-width: 1024px) {
+    .cadastro-img { display: none; }
+    #title-cadastro { font-size: 34px; }
+    .cadastro-subtitle { font-size: 15px; text-align: center; }
+    .form-cadastro { width: 95%; max-width: 500px; }
+    .input-cadastro { max-width: 100%; }
+    #continuar-cadastro { width: 100%; justify-content: center; text-align: center; }
+}

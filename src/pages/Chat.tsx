@@ -1,3 +1,4 @@
+import "../css/chat.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Send } from "lucide-react";
@@ -125,7 +126,7 @@ const Chat = () => {
           <Button
             type="submit"
             size="icon"
-            className="bg-primary hover:bg-primary-dark shrink-0"
+            className="bg-primary hover:bg-primary-light shrink-0"
           >
             <Send className="h-5 w-5" />
           </Button>

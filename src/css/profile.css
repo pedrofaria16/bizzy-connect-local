@@ -1,0 +1,52 @@
+/* styles for Profile page */
+
+/* Make the service/category badges text turn white on hover.
+	 This file is only imported by the Profile page, so the rule is scoped to that page.
+	 It targets the badges rendered inside the container with `gap-2` (the services list).
+*/
+
+/* categories in profile - smaller, white text, hover darkens bg only */
+.profile-categories > * {
+	padding: 4px 9px !important; /* slightly taller */
+	font-size: 0.78rem !important; /* slightly larger text */
+	line-height: 1.1 !important;
+	color: #111827 !important; /* black-ish text by default */
+	background-color: #ffffff !important; /* white background */
+	border: 1px solid #e5e7eb !important; /* light gray border */
+	transition: background-color .12s ease, color .12s ease, border .12s ease;
+}
+.profile-categories > *:hover {
+	background-color: hsl(var(--primary)) !important; /* orange */
+	border-color: transparent !important; /* remove border on hover */
+	color: #ffffff !important; /* white text on hover */
+}
+
+/* Dropdown menu in profile: make items fill half the menu each and hover slightly gray */
+.profile-dropdown {
+	padding: 0 !important;
+	display: flex;
+	flex-direction: column;
+	gap: 0 !important;
+}
+.profile-dropdown .dropdown-item {
+	flex: 1 1 50%;
+	display: flex;
+	align-items: center;
+	padding: 8px 12px !important;
+}
+.profile-dropdown .dropdown-item:hover {
+	background-color: #f3f4f6 !important; /* very light gray, slightly darker than white */
+	color: #111827 !important; /* near-black for contrast */
+}
+
+/* left avatar column tweaks */
+.card-avatar-wrapper { /* optional helper if card wrapper needs extra control */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ensure avatar ring and spacing harmonize with card */
+.card-avatar-wrapper .avatar, .card-avatar-wrapper .rounded-full {
+	display: inline-flex;
+}

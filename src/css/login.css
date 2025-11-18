@@ -1,0 +1,250 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.body-login {
+    width: 100%;
+    height: 100dvh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('../assets/img/fundo-login.svg');
+    background-position: 0 -60px;
+}
+
+.container-login {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.flex-login {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    font-family: 'Mukta Malar';
+    gap: 32px;
+}
+
+.login-img {
+    flex: 1 1 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    left: -10%;
+    margin: 0;
+}
+
+.form-login {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 25px;
+    margin-top: 180px;
+    width: 80%;
+}
+
+/* Header do formulário */
+.login-header {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+#title-login {
+    font-size: 45px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.login-subtitle {
+    color: #666;
+    font-size: 16px;
+    font-weight: 400;
+}
+
+/* Grupos de input */
+.input-group {
+    margin-bottom: 5px;
+}
+
+.input-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.input-label i {
+    color: #FF8800;
+    font-size: 16px;
+}
+
+/* Wrapper do input de senha */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+    border-radius: 4px;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #FF8800;
+}
+
+.flex-confirm {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row;
+    margin-top: 15px;
+}
+
+.input-login {
+    width: 450px;
+    height: 45px;
+    padding: 15px 10px;
+    border: none;
+    background-color: #EDECEC;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.input-login:focus {
+    outline: none;
+    background-color: #f0f0f0;
+    box-shadow: 0 0 0 2px rgba(255, 136, 0, 0.2);
+}
+
+.pass-circles {
+    display: flex;
+    justify-content: center;
+    width: 50px;
+    gap: 15px;
+}
+
+.passCircle {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #D9D9D9;
+}
+
+.flex-confirm-esquerda a {
+    text-decoration: none;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.flex-confirm-esquerda a:visited {
+    color: #333;
+}
+
+.flex-confirm-esquerda:hover {
+    color: #FF8800;
+    cursor: pointer;
+}
+
+.link-cadastro i {
+    font-size: 16px;
+}
+
+#continuar-login {
+    border: none;
+    background-color: #FF8800;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#continuar-login:hover {
+    background-color: #e67a00;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 136, 0, 0.3);
+}
+
+#continuar-login i {
+    font-size: 18px;
+}
+
+#title-login {
+    font-size: 45px;
+}
+
+.title-input {
+    font-weight: 600;
+}
+
+.active {
+    background-color: #FF8800;
+}
+
+/* Footer do login */
+.login-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.forgot-password {
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: color 0.3s ease;
+}
+
+.forgot-password:hover {
+    color: #FF8800;
+}
+
+.forgot-password i {
+    font-size: 16px;
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 768px) {
+    .login-img img {
+        display: none;
+    }
+}
+
+@media (max-width: 1024px) {
+    .login-img img {
+        display: none;
+    }
+}

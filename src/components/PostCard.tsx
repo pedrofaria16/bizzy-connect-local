@@ -72,7 +72,7 @@ const PostCard = ({
             </div>
             <Badge 
               variant={type === "offer" ? "default" : "secondary"}
-              className={type === "offer" ? "bg-primary hover:bg-primary-dark" : "bg-secondary text-darker-gray"}
+              className={type === "offer" ? "bg-primary hover:bg-primary-light" : "bg-secondary text-darker-gray"}
             >
               {type === "offer" ? "Oferece" : "Procura"}
             </Badge>
@@ -106,7 +106,7 @@ const PostCard = ({
           
           <div className="flex gap-2">
             <Button 
-              className="flex-1 bg-primary hover:bg-primary-dark"
+              className="flex-1 bg-primary hover:bg-primary-light"
               onClick={(e) => {
                 e.stopPropagation();
                 navigate("/chat");

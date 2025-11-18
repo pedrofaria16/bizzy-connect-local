@@ -1,11 +1,21 @@
+import "../css/createpost.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Image as ImageIcon, DollarSign, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -35,12 +45,80 @@ const CreatePost = () => {
     description: "",
     price: "",
     location: "",
+    date: "",
   });
+
+  const [addrOpen, setAddrOpen] = useState(false);
+  const [addrDraft, setAddrDraft] = useState({ cep: '', rua: '', numero: '', bairro: '', cidade: '', estado: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function buscarCepToDraft(rawCep: string) {
+    const onlyDigits = rawCep.replace(/\D/g, '');
+    if (onlyDigits.length !== 8) {
+      if (onlyDigits.length === 0) {
+        setAddrDraft(d => ({ ...d, rua: '', bairro: '', cidade: '', estado: '' }));
+      }
+      return;
+    }
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${onlyDigits}/json/`);
+      const data = await res.json();
+      if (!data || data.erro) return;
+      setAddrDraft(d => ({ ...d, rua: data.logradouro ?? '', bairro: data.bairro ?? '', cidade: data.localidade ?? '', estado: data.uf ?? '' }));
+    } catch (err) {
+      console.error('Erro ViaCEP', err);
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Post criado com sucesso!");
-    navigate("/");
+    // Require CEP for backend geocoding
+    if (!addrDraft.cep || addrDraft.cep.replace(/\D/g, '').length !== 8) {
+      toast.error('Por favor, informe um CEP válido no endereço.');
+      return;
+    }
+
+    const stored = localStorage.getItem('bizzy_user');
+    const user = stored ? JSON.parse(stored) : null;
+
+    const valorNum = parseFloat(formData.price.replace(/[^0-9,\.]/g, '').replace(',', '.')) || 0;
+
+    const payload = {
+      userId: user?.id,
+      titulo: formData.title,
+      descricao: formData.description,
+      categoria: formData.category,
+      valor: valorNum,
+      data: formData.date || new Date().toISOString(),
+      endereco: formData.location,
+      cep: addrDraft.cep,
+      cidade: addrDraft.cidade || '',
+      telefone: user?.telefone || '',
+    };
+
+    setIsSubmitting(true);
+
+    fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || 'Erro ao criar post');
+        }
+        return res.json();
+      })
+      .then((created) => {
+        toast.success('Post criado com sucesso!');
+        navigate('/');
+      })
+      .catch((err) => {
+        console.error('Erro criando post', err);
+        toast.error(err.message || 'Erro ao criar post');
+      })
+      .finally(() => setIsSubmitting(false));
   };
 
   return (
@@ -124,12 +202,15 @@ const CreatePost = () => {
                 id="description"
                 placeholder="Descreva o serviço em detalhes..."
                 rows={5}
+                className="createpost-description"
                 value={formData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  setFormData({ ...formData, description: e.target.value.slice(0, 800) })
                 }
                 required
+                maxLength={800}
               />
+              <div className="text-sm text-muted-foreground">{formData.description.length}/800</div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -150,41 +231,79 @@ const CreatePost = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Localização</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="location"
-                    placeholder="Centro"
-                    className="pl-10"
-                    value={formData.location}
-                    onChange={(e) =>
-                      setFormData({ ...formData, location: e.target.value })
-                    }
-                    required
-                  />
-                </div>
+                <Label>Localização</Label>
+                <Dialog open={addrOpen} onOpenChange={(open)=>{ if(open){ setAddrDraft({ cep: '', rua: '', numero: '', bairro: '', cidade: '', estado: '' }); } setAddrOpen(open); }}>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <DialogTrigger asChild>
+                      <Input id="location" value={formData.location} placeholder="Localização" className="pl-10 cursor-pointer" readOnly />
+                    </DialogTrigger>
+                  </div>
+
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Endereço</DialogTitle>
+                      <DialogDescription>Digite o CEP ou preencha o endereço manualmente.</DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-3">
+                      <div>
+                        <Label>CEP</Label>
+                        <Input value={addrDraft.cep} onChange={(e)=>{ const v=e.target.value; setAddrDraft(d=>({...d, cep: v })); const digits = v.replace(/\D/g,''); if(digits.length===8) buscarCepToDraft(digits); if(digits.length===0) setAddrDraft(d=>({...d, rua:'',bairro:'',cidade:'',estado:''})); }} placeholder="CEP" />
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                          <Label>Estado</Label>
+                          <Input value={addrDraft.estado} onChange={e=>setAddrDraft(d=>({...d, estado: e.target.value }))} />
+                        </div>
+                        <div>
+                          <Label>Cidade</Label>
+                          <Input value={addrDraft.cidade} onChange={e=>setAddrDraft(d=>({...d, cidade: e.target.value }))} />
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: 12 }}>
+                        <div>
+                          <Label>Rua</Label>
+                          <Input value={addrDraft.rua} onChange={e=>setAddrDraft(d=>({...d, rua: e.target.value }))} />
+                        </div>
+                        <div>
+                          <Label>Nº</Label>
+                          <Input value={addrDraft.numero} onChange={e=>setAddrDraft(d=>({...d, numero: e.target.value }))} />
+                        </div>
+                        <div>
+                          <Label>Bairro</Label>
+                          <Input value={addrDraft.bairro} onChange={e=>setAddrDraft(d=>({...d, bairro: e.target.value }))} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <Button variant="ghost" onClick={()=>setAddrOpen(false)}>Cancelar</Button>
+                      <Button onClick={()=>{ setFormData(prev=>({ ...prev, location: `${addrDraft.rua}${addrDraft.numero? ', ' + addrDraft.numero : ''}${addrDraft.bairro? ', ' + addrDraft.bairro : ''}${addrDraft.cidade? ', ' + addrDraft.cidade : ''}${addrDraft.estado? ', ' + addrDraft.estado : ''}` })); setAddrOpen(false); }}>Salvar</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Fotos (opcional)</Label>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-24 border-dashed"
-              >
-                <div className="flex flex-col items-center gap-2">
-                  <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">
-                    Adicionar fotos
-                  </span>
-                </div>
-              </Button>
+              <Label htmlFor="date">Data</Label>
+              <div className="relative">
+                <Calendar className="createpost-calendar-icon h-4 w-4" />
+                <Input
+                  id="date"
+                  type="date"
+                  className="pl-10 h-12 createpost-date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                />
+              </div>
             </div>
 
-            <Button type="submit" className="w-full bg-primary hover:bg-primary-dark">
-              Publicar
+            <Button type="submit" className="w-full bg-primary hover:bg-primary-light transition-all duration-200" disabled={isSubmitting}>
+              {isSubmitting ? 'Publicando...' : 'Publicar'}
             </Button>
           </form>
         </Card>

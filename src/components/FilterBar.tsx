@@ -32,7 +32,7 @@ const FilterBar = () => {
               variant={index === 0 ? "default" : "outline"}
               className={`cursor-pointer shrink-0 px-4 py-2 text-sm transition-all hover:scale-105 ${
                 index === 0 
-                  ? "bg-primary text-primary-foreground hover:bg-primary-dark" 
+                  ? "bg-primary text-primary-foreground hover:bg-primary-light" 
                   : "hover:bg-secondary border-border text-darker-gray"
               }`}
             >

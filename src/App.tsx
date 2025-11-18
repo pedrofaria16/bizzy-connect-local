@@ -6,10 +6,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CreatePost from "./pages/CreatePost";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 import PostDetails from "./pages/PostDetails";
 import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import Login from "./pages/login";
+import Cadastro from "./pages/cadastro";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +25,9 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/create-post" element={<CreatePost />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/post/:id" element={<PostDetails />} />
           <Route path="/chat" element={<Chat />} />

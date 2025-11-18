@@ -135,4 +135,11 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Keep text color unchanged when utilities like `hover:bg-*` are used.
+     This prevents hover states from forcing white text; the background still darkens.
+     Uses attribute selector to match Tailwind's hover:bg-* class names. */
+  [class*="hover:bg-"]:hover {
+    color: inherit !important;
+  }
 }
