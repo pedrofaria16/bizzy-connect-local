@@ -1,0 +1,471 @@
+:root {
+  --primary: #ff8800;
+  --primary-dark: #E06D00;
+  --black: #000000;
+  --white: #FFFFFF;
+  --gray: #F5F5F5;
+  --dark-gray: #333333;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Mukta Malar', 'Fredoka', Arial, sans-serif;
+}
+
+body {
+  background-color: var(--white);
+  color: var(--black);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Layout notes: keep sections ordered and concise: header, hero, features, steps, testimonials, cta, footer */
+
+/* Header Dinâmico */
+header {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+  transition: all 0.3s ease-in-out;
+}
+
+/* Header visual: keep a consistent background and shadow */
+.dynamic-header {
+  background-color: rgba(255,255,255,0.95);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo img {
+  height: 35px;
+}
+
+.logo h1 {
+  font-size: 28px;
+  margin-top: 17px;
+  margin-left: 10px;
+  color: var(--primary);
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  width: 100%;
+  font-size: larger;
+  margin-top: 13px;
+}
+
+nav ul li {
+  margin-left: 25px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 20px;
+  transition: color 0.3s;
+}
+
+/* Links brancos no estado transparente */
+.dynamic-header.transparent nav ul li a {
+  color: black;
+}
+
+.dynamic-header.transparent nav ul li a:hover {
+  color: #ff8800;
+}
+
+.btn {
+  background-color: var(--primary);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.3s;
+  display: inline-block;
+}
+
+.btn:hover {
+  background-color: var(--black); 
+  color: var(--white);
+}
+
+/* Hero Section */
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background-image: url('../assets/img/Banner.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* left-aligned content */
+  padding: 0; /* layout managed by inner .hero-content */
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  max-width: 1200px;
+  margin-left: 4vw;
+  margin-top: 560px; /* less aggressive than before, preserves visual spacing */
+}
+
+.hero h2 {
+  font-size: 4rem;
+  /*padding-top: 150px;*/
+  color: var(--white);
+  font-weight: 800;
+}
+
+.hero p {
+  font-size: 1.75rem;
+  /*max-width: 1200px;*/
+  margin: 0 auto 50px;
+  color: var(--white);
+}
+
+/* Features Section */
+.features {
+  padding: 80px 0;
+  background-color: var(--white);
+}
+
+.section-title {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.section-title h2 {
+  font-size: 3rem;
+  color: var(--black);
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.section-title p {
+  color: var(--dark-gray);
+  max-width: 800px;
+  margin: 0 auto;
+  font-weight: 600;
+  font-size: 1.38rem;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.feature-card {
+  background-color: #f58300;
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.144);
+  cursor: default;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  background-color: var(--primary);
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.feature-icon img {
+  width: 35px;
+  height: 35px;
+}
+
+.feature-card h3 {
+  font-size: 1.5rem;
+  margin-top: 10px;
+  color: var(--white);
+  font-weight: 600;
+}
+
+.feature-card p {
+  color: var(--white);
+}
+
+/* How It Works */
+.how-it-works {
+  padding: 80px 0;
+  background-color: var(--gray);
+}
+
+.steps {
+  display: flex;
+  justify-content: space-between;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.step {
+  text-align: center;
+  flex: 1;
+  padding: 0 20px;
+  position: relative;
+}
+
+.step-number {
+  background-color: var(--primary);
+  color: var(--white);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-weight: bold;
+  font-size: 1.6rem;
+}
+
+.step h3 {
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.step p {
+  font-weight: 500;
+  font-size: 1.1rem;
+  max-width: 1000px;
+  text-align: center;
+}
+
+.step:not(:last-child):after {
+  content: "";
+  position: absolute;
+  top: 20px;
+  right: -50%;
+  width: 100%;
+  height: 2px;
+  background-color: var(--primary);
+  z-index: -1;
+}
+
+/* Testimonials */
+.testimonials {
+  padding: 80px 0;
+  background-color: var(--white);
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 60px;
+}
+
+.testimonial-card {
+  background-color: rgba(221, 221, 221, 0.521);
+  border-radius: 10px;
+  padding: 30px;
+  position: relative;
+}
+
+.testimonial-card:before {
+  content: "";
+  font-size: 5rem;
+  color: var(--primary);
+  position: absolute;
+  top: 10px;
+  left: 15px;
+  opacity: 0.2;
+}
+
+.testimonial-text {
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-style: italic;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+}
+
+.author-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-weight: bold;
+}
+
+/* CTA Section */
+.cta {
+  padding: 80px 0;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: var(--white);
+  text-align: center;
+}
+
+.cta h2 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.cta p {
+  max-width: 700px;
+  margin: 0 auto 30px;
+  font-size: 1.2rem;
+}
+
+.cta .btn {
+  background-color: var(--white);
+  color: var(--primary);
+}
+
+.cta .btn:hover {
+  background-color: var(--gray);
+}
+
+/* Footer */
+
+/* Footer (support both <footer> element and .footer class used in components) */
+.footer,
+footer {
+  background-color: var(--black);
+  color: var(--white);
+  padding: 50px 0 20px;
+}
+
+.footer-container,
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0px;
+  margin-bottom: 40px;
+  margin-left: 171px;
+}
+
+.footer-column h3 {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: var(--primary);
+}
+
+.footer-column ul {
+  list-style: none;
+}
+
+.footer-column ul li {
+  margin-bottom: 10px;
+}
+
+.footer-column ul li a {
+  color: var(--white);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-column ul li a:hover {
+  color: var(--primary);
+}
+
+.social-links {
+  display: flex;
+  gap: 15px;
+}
+
+.social-links a {
+  color: var(--white);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.social-links a:hover {
+  color: var(--primary);
+}
+
+.copyright {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 190px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  nav ul {
+    margin-top: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  nav ul li {
+    margin: 5px 10px;
+  }
+  
+  .hero h2 {
+    font-size: 2rem;
+  }
+
+  /* Tighten hero spacing on small devices */
+  .hero-content {
+    margin-top: 60px;
+    margin-left: 4vw;
+  }
+  .hero p { font-size: 1rem; }
+  
+  .steps {
+    flex-direction: column;
+    gap: 40px;
+  }
+  
+  .step:not(:last-child):after {
+    display: none;
+  }
+
+  /* Ajustes responsivos para o header dinâmico */
+  /* keep nav links visible and readable on small screens */
+  .dynamic-header nav ul li a {
+    color: var(--black);
+  }
+}

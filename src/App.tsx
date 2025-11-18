@@ -10,9 +10,8 @@ import EditProfile from "./pages/EditProfile";
 import PostDetails from "./pages/PostDetails";
 import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
+import SobreNos from "./pages/SobreNos";
 import NotFound from "./pages/NotFound";
-import Login from "./pages/login";
-import Cadastro from "./pages/cadastro";
 
 const queryClient = new QueryClient();
 
@@ -23,12 +22,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/feed" element={<Index />} />
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/sobre-nos" element={<SobreNos />} />
+          <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
+          <Route path="/termos-de-uso" element={<TermosDeUso />} />
           <Route path="/post/:id" element={<PostDetails />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/notifications" element={<Notifications />} />

@@ -1,0 +1,270 @@
+/* ===== SOBRE NÓS ===== */
+.sobrenos-main {
+    background: #fff;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.logo-sobrenos {
+    width: 110px;
+    height: auto;
+    margin: 0px 850px;
+}
+
+.sobrenos-missao,
+.sobrenos-historia {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    position: relative;
+    padding: 50px 5vw;
+    gap: 40px;
+    background: #fff;
+}
+
+.sobrenos-linha-tempo {
+    width: 5px;
+    height: 100%;
+    background: orange;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.sobrenos-conteudo {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    font-size: 18px;
+    z-index: 2;
+}
+
+.sobrenos-indent { text-indent: 30px; }
+
+.sobrenos-titulo {
+    color: #FF8800;
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+/* ===== FOTOS ===== */
+.sobrenos-mis-fotos,
+.sobrenos-hist-fotos {
+    position: relative;
+    width: 100%;
+    height: 340px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sobrenos-mis-laranja,
+.sobrenos-hist-laranja {
+    background: orange;
+    width: 85%;
+    height: 80%;
+    position: absolute;
+    top: 20px;
+    right: 0;
+    border-radius: 24px;
+    z-index: 0;
+}
+
+.sobrenos-foto-grupo,
+.sobrenos-grupo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 85%;
+    height: 80%;
+    object-fit: cover;
+    border-radius: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    z-index: 1;
+}
+
+/* ===== EQUIPE ===== */
+.sobrenos-equipe {
+    padding: 50px 0 110px;
+    background: #f7f7f7;
+}
+
+#sobrenos-title-03 {
+    text-align: center;
+    padding: 40px 0 30px;
+}
+
+.sobrenos-cada-um {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 50px 40px;
+    padding: 0 10vw;
+}
+
+.sobrenos-unidade {
+    text-align: center;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    padding: 24px 10px 18px;
+    transition: transform 0.15s;
+}
+
+.sobrenos-unidade:hover { transform: translateY(-6px) scale(1.03); }
+
+.sobrenos-unidade img {
+    width: 130px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    margin: 0 auto 12px auto; /* centraliza horizontalmente */
+    border: 4px solid #FF8800;
+}
+
+.sobrenos-nomezinho {
+    font-size: 1.1rem;
+    color: #333;
+    margin-top: 8px;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+/* ===== FOOTER ===== */
+.sobrenos-footer {
+    background: #262626;
+    padding: 30px 0;
+    color: #fff;
+}
+
+.sobrenos-footer-container {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 50px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 5vw;
+}
+
+.sobrenos-footer-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 150px;
+    gap: 4px;
+}
+
+.sobrenos-footer-col h1 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.sobrenos-footer-col h1::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 120px;
+    height: 2px;
+    background: orange;
+}
+
+.sobrenos-footer-col a {
+    font-size: 16px;
+    color: #fff;
+    margin: 3px 0;
+    text-decoration: none;
+}
+
+.sobrenos-footer-col a:hover { text-decoration: underline; }
+
+.sobrenos-footer-col img[alt="Logo"] { width: 50px; }
+
+.sobrenos-telefone-footer {
+    font-weight: 400;
+    line-height: 1.6;
+    margin: 8px 0;
+    font-family: 'Mukta Malar', sans-serif;
+}
+
+.sobrenos-social-icons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sobrenos-social-icons img {
+    width: 38px;
+    margin-top: -2px;
+    margin-left: -10px;
+}
+
+.sobrenos-copyright {
+    font-size: 10px;
+    margin-top: 0;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+@media (max-width: 425px) {
+        body {
+            padding-top: 0px;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .sobrenos-missao,
+    .sobrenos-historia {
+        display: flex;
+        flex-direction: column;
+        padding: 30px 5vw;
+    }
+
+    .sobrenos-historia { padding-bottom: 30px; }
+    .sobrenos-equipe { padding-bottom: 50px; }
+    .sobrenos-hist-fotos { display: none; }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: 15px 0;
+  }
+
+  .footer-container {
+    justify-content: space-between;
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 5vw;
+  }
+
+  .footer-col img[alt="Logo"] {
+    width: 50px; /* menor ainda em telas menores */
+    margin: 5px 0 0 0;
+  }
+
+  .social-icons img {
+    width: 40px; /* ajusta os ícones também */
+  }
+
+  .footer-col .copyright {
+    font-size: x-small;
+  }
+}
+
+@media (max-width: 1024px) {
+  .footer {
+    padding: 15px 0;
+  }
+
+  .footer-container {
+    justify-content: space-between;
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 5vw;
+  }
+
+}
