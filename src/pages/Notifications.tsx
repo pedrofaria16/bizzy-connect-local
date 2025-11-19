@@ -15,7 +15,18 @@ const Notifications = () => {
     (async () => {
       try {
         const data = await apiJson('/api/notifications');
-        setNotifications(data || []);
+        const arr = data || [];
+        // for message notifications, fetch sender info and attach as `fromUser` for display
+        const enriched = await Promise.all(arr.map(async (n: any) => {
+          try {
+            if (n.type === 'message' && n.data && n.data.fromUserId) {
+              const u = await apiJson(`/api/auth/user?id=${n.data.fromUserId}`);
+              return { ...n, fromUser: u };
+            }
+          } catch (e) { console.warn('Erro ao buscar remetente da notificação', e); }
+          return n;
+        }));
+        setNotifications(enriched);
       } catch (e) { console.error(e); }
     })();
   }, []);
@@ -51,28 +62,64 @@ const Notifications = () => {
               <Card
                 key={notification.id}
                 className={`p-4 cursor-pointer ${notification.read ? '' : 'border-l-4 border-l-primary'}`}
-                onClick={() => {
-                  markRead(notification.id);
-                  if (type === 'message') navigate('/chat');
-                  if (type === 'candidatura' || type === 'contratado') navigate('/notifications');
-                }}
+                onClick={async () => {
+                    markRead(notification.id);
+                    if (type === 'message') {
+                      try {
+                        const fromUserId = notification.data?.fromUserId;
+                        const convId = notification.data?.conversationId;
+                        if (convId) {
+                          navigate(`/chat?conversationId=${convId}&toUserId=${fromUserId}`);
+                        } else if (fromUserId) {
+                          // create or fetch conversation then navigate
+                          try {
+                            const conv = await apiJson('/api/chat/conversation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userAId: Number(getStoredUserId()), userBId: Number(fromUserId) }) });
+                            navigate(`/chat?conversationId=${conv.id}&toUserId=${fromUserId}`);
+                          } catch (e) {
+                            console.warn('Erro criando/recuperando conversa:', e);
+                            // fallback: navigate to chat with toUserId (Chat page will try to resolve)
+                            navigate(`/chat?toUserId=${fromUserId}`);
+                          }
+                        } else {
+                          navigate('/chat');
+                        }
+                      } catch (e) {
+                        console.error('Erro ao abrir notificação de mensagem:', e);
+                        navigate('/chat');
+                      }
+                    }
+                    if (type === 'candidatura' || type === 'contratado') navigate('/notifications');
+                  }}
               >
                 <div className="flex items-start gap-4">
-                  <div className="relative">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={''} />
-                      <AvatarFallback className="bg-secondary text-darker-gray">N</AvatarFallback>
-                    </Avatar>
-                    <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1">
-                      <MessageCircle className="h-3 w-3 text-primary-foreground" />
+                    <div className="relative">
+                      <Avatar className="h-12 w-12">
+                        {notification.fromUser && notification.fromUser.foto ? (
+                          <AvatarImage src={notification.fromUser.foto} />
+                        ) : null}
+                        <AvatarFallback className="bg-secondary text-darker-gray">
+                          {notification.fromUser && notification.fromUser.name ? notification.fromUser.name.split(' ').map((s:string)=>s[0]).slice(0,2).join('').toUpperCase() : 'N'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1">
+                        <MessageCircle className="h-3 w-3 text-primary-foreground" />
+                      </div>
                     </div>
-                  </div>
 
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground">
-                      <span className="font-semibold">Notificação</span>{' '}
-                      {notification.type}
+                      {notification.type === 'message' ? (
+                        <>
+                          <span className="font-semibold">{notification.fromUser?.name || 'Usuário'}</span>{' '}
+                          <span>enviou uma mensagem</span>
+                        </>
+                      ) : (
+                        <><span className="font-semibold">Notificação</span>{' '}{notification.type}</>
+                      )}
                     </p>
+                    {notification.type === 'message' && notification.data?.text ? (
+                      <p className="text-sm mt-1">"{notification.data.text}"</p>
+                    ) : null}
                     <p className="text-xs text-muted-foreground mt-1">{new Date(notification.createdAt).toLocaleString()}</p>
                   </div>
 

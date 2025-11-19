@@ -1,16 +1,27 @@
 import { Search, Bell, MessageCircle, User } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Header = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const raw = typeof window !== 'undefined' ? localStorage.getItem('bizzy_user') : null;
   let storedUser: any = null;
   try { storedUser = raw ? JSON.parse(raw) : null; } catch(e) { storedUser = null; }
 
   const [menuAberto, setMenuAberto] = useState(false);
+  const [headerSearch, setHeaderSearch] = useState<string>("");
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const q = params.get('q') || '';
+      setHeaderSearch(q);
+    } catch (e) {
+      // ignore
+    }
+  }, [location.search]);
   const abrirMenu = () => setMenuAberto((prev) => !prev);
 
   return (
@@ -23,6 +34,16 @@ const Header = () => {
           <div className="hidden md:flex relative w-64 lg:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
+              value={headerSearch}
+              onChange={(e: any) => {
+                setHeaderSearch(e.target.value);
+              }}
+              onKeyDown={(e: any) => {
+                if (e.key === 'Enter') {
+                  const v = String(headerSearch || '').trim();
+                  navigate(`/feed${v ? `?q=${encodeURIComponent(v)}` : ''}`);
+                }
+              }}
               placeholder="Buscar serviços..." 
               className="pl-10 bg-secondary/50 border-border focus-visible:ring-primary"
             />

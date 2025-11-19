@@ -5,6 +5,7 @@ import PostCard from "@/components/PostCard";
 import CreatePostButton from "@/components/CreatePostButton";
 
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 interface BackendPost {
   id: number;
@@ -27,6 +28,9 @@ const Index = () => {
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Todos']);
   const [priceSort, setPriceSort] = useState<'asc' | 'desc' | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('/api/posts')
@@ -34,6 +38,33 @@ const Index = () => {
       .then(data => setPosts(data))
       .catch(err => { console.error('Erro ao buscar posts', err); setPosts([]); });
   }, []);
+
+  // sync searchQuery from URL param `q`
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const q = params.get('q') || '';
+      setSearchQuery(q);
+    } catch (e) {
+      // ignore
+    }
+  }, [location.search]);
+
+  // debug: log how many posts match the current query (temporary)
+  useEffect(() => {
+    try {
+      if (!posts) return;
+      const q = String(searchQuery || '').trim().toLowerCase();
+      if (!q) {
+        console.info('[Search debug] query empty');
+        return;
+      }
+      const matches = posts.filter(p => String(p.titulo || '').toLowerCase().includes(q));
+      console.info('[Search debug] q="' + q + '" matches=', matches.length, 'of', posts.length);
+    } catch (e) {
+      console.warn('[Search debug] error', e);
+    }
+  }, [searchQuery, posts]);
 
   useEffect(() => {
     if (!navigator || !navigator.geolocation) return;
@@ -68,6 +99,119 @@ const Index = () => {
   // proximity thresholds in km (kept for potential use)
   const proximityThresholds = { near: 5, medium: 20 };
 
+  // prepare rendered posts (compute outside JSX to avoid parser issues)
+  const renderedPosts = (() => {
+    try {
+      if (posts === null) return <div className="text-center text-muted-foreground">Carregando posts...</div>;
+      if (posts.length === 0) return <div className="text-center text-muted-foreground">Nenhum post encontrado.</div>;
+
+      const normalize = (s: string) => {
+        try {
+          const base = String(s || '');
+          if (typeof base.normalize === 'function') {
+            // try Unicode normalization + remove diacritics if supported
+            return base.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+          }
+          return base.toLowerCase();
+        } catch (e) {
+          return String(s || '').toLowerCase();
+        }
+      };
+
+      const q = normalize(String(searchQuery || '').trim());
+
+      const items = posts.map((p) => {
+      const rawValor = p.valor ?? 0;
+      const parsedValor = Number(String(rawValor).replace(',', '.'));
+      const isRequest = !isNaN(parsedValor) && parsedValor > 0;
+      let km = NaN;
+      if (coords && p.lat != null && p.lon != null) km = haversine(coords.lat, coords.lon, Number(p.lat), Number(p.lon));
+
+        const titleNorm = normalize(String(p.titulo || ''));
+
+      let titleScore = 0;
+      try {
+        if (q) {
+          if (titleNorm === q) titleScore = 1000;
+          else if (titleNorm.startsWith(q)) titleScore = 500;
+          else if (titleNorm.includes(q)) titleScore = 100;
+
+          const tokens = q.split(/\s+/).filter(Boolean);
+          for (const t of tokens) {
+            if (t.length >= 3 && titleNorm.includes(t)) titleScore += 10;
+          }
+        }
+      } catch (e) {
+        titleScore = 0;
+      }
+
+      return { p, parsedValor, isRequest, km, titleScore, titleNorm };
+    });
+
+    const filteredByCategory = items.filter(({ p }) => {
+      if (!selectedCategories || selectedCategories.includes('Todos')) return true;
+      if (selectedCategories.length === 0) return true;
+      if (selectedCategories.includes(p.categoria)) return true;
+      return false;
+    });
+
+    const matches = q ? filteredByCategory.filter(it => it.titleNorm.includes(q)) : [];
+    const nonMatches = q ? filteredByCategory.filter(it => !it.titleNorm.includes(q)) : filteredByCategory;
+
+    const priceComparator = (a: any, b: any) => priceSort === 'asc' ? a.parsedValor - b.parsedValor : b.parsedValor - a.parsedValor;
+
+    matches.sort((a, b) => {
+      if (b.titleScore !== a.titleScore) return b.titleScore - a.titleScore;
+      if (priceSort) return priceComparator(a, b);
+      return 0;
+    });
+
+    if (priceSort) nonMatches.sort(priceComparator);
+
+    let finalItems = q ? [...matches, ...nonMatches] : filteredByCategory;
+
+    // when there's no search query, default ordering should be by creation time (newest first)
+    if (!q) {
+      if (priceSort) {
+        // if price sort is active, apply it
+        finalItems.sort((a: any, b: any) => priceSort === 'asc' ? a.parsedValor - b.parsedValor : b.parsedValor - a.parsedValor);
+      } else {
+        // otherwise sort by date (newest first). fallback to 0 when date invalid
+        finalItems.sort((a: any, b: any) => {
+          const ta = a.p?.data ? new Date(a.p.data).getTime() : 0;
+          const tb = b.p?.data ? new Date(b.p.data).getTime() : 0;
+          return tb - ta;
+        });
+      }
+    }
+
+      return finalItems.map(({ p, parsedValor, isRequest, km }) => {
+      const distanceStr = isNaN(km) ? '--' : formatDistance(km);
+      return (
+        <PostCard
+          id={p.id}
+          key={p.id}
+          type={isRequest ? "request" : "offer"}
+          username={p.User?.name || 'Anônimo'}
+          avatar={p.User?.foto || p.foto || undefined}
+          rating={4.5}
+          category={p.categoria}
+          title={p.titulo}
+          description={p.descricao}
+          price={p.valor ? `R$ ${p.valor}` : undefined}
+          location={p.endereco || ''}
+          distance={distanceStr}
+          time={new Date(p.data).toLocaleString()}
+          authorId={p.User?.id ?? p.userId}
+        />
+      );
+      });
+    } catch (err) {
+      console.error('[Feed render error]', err);
+      return <div className="text-center text-destructive">Erro ao renderizar posts. Veja o console.</div>;
+    }
+  })();
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -80,56 +224,7 @@ const Index = () => {
       
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto space-y-4">
-          {posts === null ? (
-            <div className="text-center text-muted-foreground">Carregando posts...</div>
-          ) : posts.length === 0 ? (
-            <div className="text-center text-muted-foreground">Nenhum post encontrado.</div>
-          ) : (
-            // Apply filters client-side
-            posts
-              .map((p) => {
-                // compute numeric value and distance
-                const rawValor = p.valor ?? 0;
-                const parsedValor = Number(String(rawValor).replace(',', '.'));
-                const isRequest = !isNaN(parsedValor) && parsedValor > 0;
-                let km = NaN;
-                if (coords && p.lat != null && p.lon != null) km = haversine(coords.lat, coords.lon, Number(p.lat), Number(p.lon));
-                return { p, parsedValor, isRequest, km };
-              })
-              .filter(({ p, km }) => {
-                // category filter
-                if (!selectedCategories || selectedCategories.includes('Todos')) return true;
-                if (selectedCategories.length === 0) return true;
-                if (selectedCategories.includes(p.categoria)) return true;
-                return false;
-              })
-              // proximity filtering removed (now handled client-side if needed)
-              .sort((a, b) => {
-                if (!priceSort) return 0;
-                return priceSort === 'asc' ? a.parsedValor - b.parsedValor : b.parsedValor - a.parsedValor;
-              })
-              .map(({ p, parsedValor, isRequest, km }) => {
-                const distanceStr = isNaN(km) ? '--' : formatDistance(km);
-                return (
-                  <PostCard
-                    id={p.id}
-                    key={p.id}
-                    type={isRequest ? "request" : "offer"}
-                    username={p.User?.name || 'Anônimo'}
-                    avatar={p.User?.foto || p.foto || undefined}
-                    rating={4.5}
-                    category={p.categoria}
-                    title={p.titulo}
-                    description={p.descricao}
-                    price={p.valor ? `R$ ${p.valor}` : undefined}
-                    location={p.endereco || ''}
-                    distance={distanceStr}
-                    time={new Date(p.data).toLocaleString()}
-                    authorId={p.User?.id ?? p.userId}
-                  />
-                );
-              })
-          )}
+          {renderedPosts}
         </div>
       </main>
       

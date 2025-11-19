@@ -24,7 +24,7 @@ const categories = [
   "Jardinagem",
 ];
 
-const FilterBar = ({ selectedCategories = [], onCategoriesChange, priceSort = null, onPriceSortChange }: FilterBarProps) => {
+const FilterBar = ({ selectedCategories = [], onCategoriesChange, priceSort = null, onPriceSortChange, searchQuery = '', onSearchChange }: FilterBarProps) => {
   const [localCats, setLocalCats] = useState<string[]>(selectedCategories);
 
   function toggleCategory(cat: string) {
@@ -40,8 +40,6 @@ const FilterBar = ({ selectedCategories = [], onCategoriesChange, priceSort = nu
     onPriceSortChange?.(next);
   }
 
-  // no proximity control (removed)
-
   return (
     <div className="sticky top-16 z-40 bg-card border-b border-border py-3">
       <div className="container mx-auto px-4">
@@ -51,6 +49,7 @@ const FilterBar = ({ selectedCategories = [], onCategoriesChange, priceSort = nu
             Filtros
           </Button>
 
+          {/* search removed from filter bar; use header search only */}
           <div className="h-8 w-px bg-border shrink-0" />
 
           {categories.map((category) => (

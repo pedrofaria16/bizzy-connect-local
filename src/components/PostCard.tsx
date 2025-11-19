@@ -1,6 +1,18 @@
 import { MapPin, Star, Clock, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { apiFetch, getStoredUserId } from '@/lib/api';
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -163,15 +175,66 @@ const PostCard = ({
             } catch (e) { /* ignore parse errors and show buttons */ }
             return (
               <div className="flex gap-2">
-                <Button 
-                  className="flex-1 bg-primary hover:bg-primary-light"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate("/chat");
-                  }}
-                >
-                  {inferIsOffer ? "Contratar" : "Candidatar-se"}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      className="flex-1 bg-primary hover:bg-primary-light"
+                      onClick={(e) => { e.stopPropagation(); }}
+                    >
+                      {inferIsOffer ? "Contratar" : "Candidatar-se"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {inferIsOffer ? 'Confirmar contratação' : 'Confirmar candidatura'}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {inferIsOffer ? 'Tem certeza que deseja contratar este profissional para o serviço?' : 'Tem certeza que deseja se candidatar a este serviço?'}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction asChild>
+                        <Button
+                          className="bg-primary"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              if (inferIsOffer) {
+                                const idUser = getStoredUserId();
+                                if (!idUser) return alert('Faça login para contratar.');
+                                const res = await apiFetch(`/api/posts/${id}/contratar`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ contratanteId: Number(idUser) })
+                                });
+                                if (!res.ok) throw new Error('Erro ao contratar');
+                                alert('Profissional contratado — notificação enviada.');
+                              } else {
+                                const idUser = getStoredUserId();
+                                if (!idUser) return alert('Faça login para se candidatar.');
+                                const res = await apiFetch(`/api/posts/${id}/candidatar`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ userId: Number(idUser) })
+                                });
+                                if (!res.ok) throw new Error('Erro ao candidatar');
+                                alert('Candidatura enviada. O autor recebeu uma notificação.');
+                              }
+                            } catch (err: any) {
+                              console.error(err);
+                              alert(err?.message || 'Erro na ação');
+                            }
+                          }}
+                        >
+                          Confirmar
+                        </Button>
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
                 <Button 
                   variant="outline" 
                   className="flex-1 border-border hover:bg-secondary"
