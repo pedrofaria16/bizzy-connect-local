@@ -1,7 +1,20 @@
 import "../css/postdetails.css";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Star, Clock, DollarSign, MessageCircle, Briefcase } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { apiJson, apiFetch, getStoredUserId } from '@/lib/api';
+import { ArrowLeft, MapPin, Star, Clock, DollarSign, MessageCircle, Briefcase, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +22,57 @@ import { Separator } from "@/components/ui/separator";
 
 const PostDetails = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+
+  const [post, setPost] = useState<any | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
+    apiJson(`/api/posts/${id}`)
+      .then((data) => setPost(data))
+      .catch((err) => setError(err.message || 'Erro ao carregar'))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  // determine if the current logged-in user is the owner/author of the post
+  const getCurrentUserId = () => {
+    try {
+      const raw = typeof window !== 'undefined' ? (localStorage.getItem('bizzy_user') || localStorage.getItem('user')) : null;
+      const parsed = raw ? JSON.parse(raw) : null;
+      return parsed?.id ?? parsed;
+    } catch (e) { return null; }
+  };
+  const currentUserId = getCurrentUserId();
+  const isOwner = post && (post.userId || post.User?.id || post.authorId) ? Number(currentUserId) === Number(post.userId || post.User?.id || post.authorId) : false;
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-destructive">{error}</div>;
+
+  const author = post.User || post.user || post.userId ? (post.User || { name: 'Usuário' }) : { name: 'Usuário' };
+  const isOffer = Number(post.valor) === 0;
+  const badgeLabel = isOffer ? 'Oferece' : 'Solicita';
+  const priceNum = Number(post.valor || 0);
+  const priceLabel = priceNum > 0 ? `R$ ${priceNum.toFixed(2)}` : 'valor a combinar';
+
+  const extractNeighborhoodCity = (endereco?: string, cidade?: string) => {
+    if (!endereco && !cidade) return 'Local não informado';
+    if (endereco) {
+      const parts = endereco.split(',').map((s: string) => s.trim()).filter(Boolean);
+      if (parts.length >= 3) {
+        const bairro = parts[parts.length - 3];
+        const cidadeVal = parts[parts.length - 2] || cidade;
+        if (bairro && cidadeVal) return `${bairro} • ${cidadeVal}`;
+        if (cidadeVal) return cidadeVal;
+      }
+      if (cidade) return cidade;
+      const last = parts[parts.length - 1];
+      return last || 'Local não informado';
+    }
+    return cidade || 'Local não informado';
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -17,7 +81,7 @@ const PostDetails = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/feed")}
             className="hover:bg-secondary"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -29,10 +93,10 @@ const PostDetails = () => {
       <main className="container mx-auto max-w-4xl px-4 py-6">
         <Card className="p-6 mb-6">
           <div className="flex items-start gap-4 mb-6">
-            <Avatar className="h-16 w-16" onClick={() => navigate("/profile")}>
-              <AvatarImage src="" />
+            <Avatar className="h-16 w-16" onClick={() => navigate("/profile?userId=" + (author.id || post.userId))}>
+              {author.foto ? <AvatarImage src={author.foto} /> : null}
               <AvatarFallback className="bg-primary text-primary-foreground text-xl cursor-pointer">
-                MS
+                {(author.name || 'U').split(' ').map((s:string)=>s[0]).slice(0,2).join('').toUpperCase()}
               </AvatarFallback>
             </Avatar>
 
@@ -41,46 +105,39 @@ const PostDetails = () => {
                 <div className="flex items-center gap-2">
                   <h3 
                     className="font-semibold text-lg text-foreground cursor-pointer hover:text-primary"
-                    onClick={() => navigate("/profile")}
+                    onClick={() => navigate(`/profile?userId=${author.id || post.userId}`)}
                   >
-                    Maria Silva
+                    {author.name || 'Usuário'}
                   </h3>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-primary text-primary" />
                     <span className="font-medium text-darker-gray">4.8</span>
                   </div>
                 </div>
-                <Badge className="bg-primary">Oferece</Badge>
+                <Badge className={isOffer ? 'bg-primary' : 'bg-darker-gray text-primary-foreground'}>{badgeLabel}</Badge>
               </div>
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>Publicado há 2 horas</span>
+                <span>{post.createdAt ? new Date(post.createdAt).toLocaleString() : 'Publicado'}</span>
               </div>
             </div>
           </div>
 
           <Badge variant="outline" className="mb-4 border-primary/30">
-            Limpeza
+            {post.categoria}
           </Badge>
 
-          <h2 className="text-2xl font-bold text-foreground mb-4">
-            Serviços de Limpeza Residencial
-          </h2>
+          <h2 className="text-2xl font-bold text-foreground mb-4">{post.titulo}</h2>
 
-          <p className="text-muted-foreground mb-6">
-            Ofereço serviços completos de limpeza residencial com experiência de 5 anos. 
-            Trabalho com produtos de qualidade e garanto sua satisfação. Serviços incluem:
-            limpeza de cômodos, banheiros, cozinha, janelas e muito mais. Disponibilidade 
-            para trabalhos pontuais ou contratos mensais.
-          </p>
+          <p className="text-muted-foreground mb-6">{post.descricao}</p>
 
           <div className="grid gap-4 sm:grid-cols-2 mb-6">
             <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
               <DollarSign className="h-5 w-5 text-primary" />
               <div>
                 <p className="text-xs text-muted-foreground">Preço</p>
-                <p className="font-semibold text-darker-gray">R$ 120/dia</p>
+                <p className="font-semibold text-darker-gray">{priceLabel}</p>
               </div>
             </div>
 
@@ -88,43 +145,122 @@ const PostDetails = () => {
               <MapPin className="h-5 w-5 text-primary" />
               <div>
                 <p className="text-xs text-muted-foreground">Localização</p>
-                <p className="font-semibold text-darker-gray">Centro • 1.2 km</p>
+                <p className="font-semibold text-darker-gray">{extractNeighborhoodCity(post.endereco, post.cidade)}</p>
               </div>
             </div>
           </div>
 
           <Separator className="my-6" />
 
-          <div className="flex gap-3">
-            <Button 
-              className="flex-1 bg-primary hover:bg-primary-light"
-              onClick={() => navigate("/chat")}
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Enviar Mensagem
-            </Button>
-            <Button variant="outline" className="flex-1 border-border">
-              Contratar
-            </Button>
-          </div>
+          {!isOwner && (
+            <div className="flex gap-3">
+              <Button 
+                className="flex-1 bg-primary hover:bg-primary-light"
+                onClick={async () => {
+                  try {
+                    const id = getStoredUserId();
+                    if (!id) return alert('Faça login para enviar mensagem');
+                    const otherId = author.id || post.userId;
+                    const conv = await apiJson('/api/chat/conversation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userAId: Number(id), userBId: otherId }) });
+                    navigate(`/chat?conversationId=${conv.id}&toUserId=${otherId}`);
+                  } catch (e) { console.error(e); alert(e.message || 'Erro ao iniciar conversa'); }
+                }}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Enviar Mensagem
+              </Button>
+
+              {/* Candidatar / Contratar flow with confirmation dialogs */}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="flex-1 border-border">
+                    {isOffer ? 'Contratar' : 'Candidatar-se'}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {isOffer ? 'Confirmar contratação' : 'Confirmar candidatura'}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {isOffer ? 'Tem certeza que deseja contratar este profissional para o serviço?' : 'Tem certeza que deseja se candidatar a este serviço?'}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction asChild>
+                      <Button
+                        className="bg-primary"
+                        onClick={async () => {
+                          try {
+                            if (isOffer) {
+                              // contratar -> chamar novo endpoint /contratar
+                              const id = getStoredUserId();
+                              if (!id) return alert('Faça login para contratar.');
+                              const res = await apiFetch(`/api/posts/${post.id}/contratar`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ contratanteId: Number(id) })
+                              });
+                              if (!res.ok) throw new Error('Erro ao contratar');
+                              alert('Profissional contratado — notificação enviada.');
+                            } else {
+                              // candidatar
+                              const id = getStoredUserId();
+                              if (!id) return alert('Faça login para se candidatar.');
+                              const res = await apiFetch(`/api/posts/${post.id}/candidatar`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId: Number(id) }),
+                              });
+                              if (!res.ok) throw new Error('Erro ao candidatar');
+                              alert('Candidatura enviada. O autor recebeu uma notificação.');
+                            }
+                          } catch (e) {
+                            console.error(e);
+                            alert(e.message || 'Erro na ação');
+                          }
+                        }}
+                      >
+                        Confirmar
+                      </Button>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          )}
         </Card>
 
         <Card className="p-6">
-          <h3 className="font-semibold text-lg mb-4 text-foreground">
-            Sobre Maria Silva
-          </h3>
-          <p className="text-muted-foreground mb-4">
-            Profissional experiente e dedicada. Trabalho com limpeza há mais de 5 anos 
-            e tenho orgulho do meu trabalho. Pontualidade e qualidade são minhas prioridades.
-          </p>
-          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-2">
-              <Briefcase className="h-4 w-4" />
-              <span>32 trabalhos concluídos</span>
+          <h3 className="font-semibold text-lg mb-4 text-foreground">Sobre o(a) profissional</h3>
+          <p className="text-muted-foreground mb-4">{(author && (author.description || author.description === '') ) ? (author.description || 'Sem descrição fornecida.') : (post.User && post.User.description) || 'Sem descrição fornecida.'}</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 text-sm text-muted-foreground">
+            <div className="flex items-start gap-3">
+              <Briefcase className="h-4 w-4 mt-1" />
+              <div>
+                <div className="font-medium text-foreground">Serviços</div>
+                <div>{(author && author.servicos) || (post.User && post.User.servicos) || 'Não informado'}</div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              <span>24 avaliações</span>
+
+            <div className="flex items-start gap-3">
+              <Star className="h-4 w-4 mt-1" />
+              <div>
+                <div className="font-medium text-foreground">Avaliações</div>
+                <div>{/* If you store ratings, render here; fallback text: */}Sem avaliações</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 text-sm text-muted-foreground">
+            <div className="flex items-start gap-3">
+              <Phone className="h-4 w-4 mt-1" />
+              <div>
+                <div className="font-medium text-foreground">Contato</div>
+                <div>{(author && author.telefone) || (post.User && post.User.telefone) || 'Telefone não informado'}</div>
+              </div>
             </div>
           </div>
         </Card>

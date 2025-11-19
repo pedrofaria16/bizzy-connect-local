@@ -1,3 +1,4 @@
+import Contacts from './pages/Contacts';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,6 +13,11 @@ import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
 import SobreNos from "./pages/SobreNos";
 import NotFound from "./pages/NotFound";
+import LandingPage from "./pages/LandingPage";
+import Login from "./pages/login";
+import Cadastro from "./pages/cadastro";
+import PoliticaDePrivacidade from "@/components/politica-de-privacidade";
+import TermosDeUso from "@/components/termos-de-uso";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +40,7 @@ const App = () => (
           <Route path="/termos-de-uso" element={<TermosDeUso />} />
           <Route path="/post/:id" element={<PostDetails />} />
           <Route path="/chat" element={<Chat />} />
+           <Route path="/contacts" element={<Contacts />} />
           <Route path="/notifications" element={<Notifications />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

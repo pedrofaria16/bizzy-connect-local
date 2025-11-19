@@ -39,7 +39,10 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    // Merge the CVA-generated classes with any custom className passed by callers.
+    // Passing className into cva options may not reliably append user classes,
+    // so we merge them here to ensure utility classes like `bg-primary` take effect.
+    return <Comp className={cn(buttonVariants({ variant, size }), className)} ref={ref} {...props} />;
   },
 );
 Button.displayName = "Button";

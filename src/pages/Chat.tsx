@@ -1,57 +1,91 @@
 import "../css/chat.css";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { apiJson, apiFetch, getStoredUserId } from '@/lib/api';
 
 const Chat = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const conversationId = params.get('conversationId');
+  const toUserId = params.get('toUserId');
+
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "Maria Silva",
-      content: "Olá! Vi seu interesse no meu serviço. Como posso ajudar?",
-      time: "10:30",
-      isOwn: false,
-    },
-    {
-      id: 2,
-      sender: "Você",
-      content: "Oi! Gostaria de saber mais sobre seus horários disponíveis.",
-      time: "10:32",
-      isOwn: true,
-    },
-    {
-      id: 3,
-      sender: "Maria Silva",
-      content: "Tenho disponibilidade de segunda a sexta, das 8h às 17h. Finais de semana também é possível com agendamento prévio.",
-      time: "10:33",
-      isOwn: false,
-    },
-  ]);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [otherUser, setOtherUser] = useState<any | null>(null);
+  const backendBase = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '';
+
+  useEffect(() => {
+    if (!conversationId) return;
+    apiJson(`/api/chat/messages/${conversationId}`)
+      .then((msgs: any[]) => {
+        const myId = getStoredUserId();
+        const normalized = (msgs || []).map(m => ({
+          id: m.id,
+          content: m.text ?? m.content,
+          isOwn: Number(m.fromUserId) === Number(myId),
+          time: m.createdAt ? new Date(m.createdAt).toLocaleString() : ''
+        }));
+        setMessages(normalized);
+      })
+      .catch(console.error);
+  }, [conversationId]);
+
+  // load other user's profile (prefer toUserId param, fallback to conversation lookup)
+  useEffect(() => {
+    (async () => {
+      try {
+        if (toUserId) {
+          const u = await apiJson(`/api/auth/user?id=${toUserId}`);
+          setOtherUser(u);
+          return;
+        }
+        if (conversationId) {
+          // fetch conversations and find this one
+          const convs = await apiJson('/api/chat/conversations');
+          const found = (convs || []).find((c: any) => Number(c.conversation.id) === Number(conversationId));
+          if (found) setOtherUser(found.otherUser);
+        }
+      } catch (e) {
+        console.error('Erro ao buscar usuário da conversa', e);
+      }
+    })();
+  }, [toUserId, conversationId]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
-
-    const newMessage = {
-      id: messages.length + 1,
-      sender: "Você",
-      content: message,
-      time: new Date().toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      isOwn: true,
-    };
-
-    setMessages([...messages, newMessage]);
-    setMessage("");
+    (async () => {
+      try {
+        if (!conversationId || !toUserId) return alert('Conversa inválida');
+        // debug: what id will be used
+        const debugId = getStoredUserId();
+        console.debug('[chat] sending message, detected user id =', debugId, 'conversationId=', conversationId, 'toUserId=', toUserId);
+        const res = await apiFetch('/api/chat/messages', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ conversationId: Number(conversationId), toUserId: Number(toUserId), text: message })
+        });
+        console.debug('[chat] send response status:', res.status);
+        if (res.status === 401 || res.status === 403) return alert('Faça login para enviar mensagem');
+        const saved = await res.json();
+        if (!res.ok) throw new Error(saved?.message || saved?.error || 'Erro ao enviar');
+        const myId = getStoredUserId();
+        const normalized = {
+          id: saved.id,
+          content: saved.text ?? saved.content,
+          isOwn: Number(saved.fromUserId) === Number(myId),
+          time: saved.createdAt ? new Date(saved.createdAt).toLocaleString() : ''
+        };
+        setMessages(prev => [...prev, normalized]);
+        setMessage('');
+      } catch (e) { console.error(e); alert('Erro ao enviar mensagem'); }
+    })();
   };
 
   return (
@@ -61,24 +95,23 @@ const Chat = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/feed")}
             className="hover:bg-secondary"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div 
             className="flex items-center gap-3 flex-1 cursor-pointer"
-            onClick={() => navigate("/profile")}
+            onClick={() => otherUser ? navigate(`/profile?userId=${otherUser.id}`) : null}
           >
             <Avatar className="h-10 w-10">
-              <AvatarImage src="" />
+              {otherUser && otherUser.foto ? <AvatarImage src={otherUser.foto.startsWith('http') ? otherUser.foto : `${backendBase}${otherUser.foto}`} /> : null}
               <AvatarFallback className="bg-primary text-primary-foreground">
-                MS
+                {otherUser && otherUser.name ? otherUser.name.split(' ').map((s:string)=>s[0]).slice(0,2).join('').toUpperCase() : 'U'}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-semibold text-foreground">Maria Silva</h2>
-              <p className="text-xs text-muted-foreground">Online</p>
+              <h2 className="font-semibold text-foreground">{otherUser?.name ?? 'Usuário'}</h2>
             </div>
           </div>
         </div>

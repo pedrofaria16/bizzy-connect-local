@@ -2,6 +2,10 @@ const express = require('express');
 const Post = require('../models/Post');
 const Candidatura = require('../models/Candidatura');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
+const Servico = require('../models/Servico');
+const Conversation = require('../models/Conversation');
+const auth = require('../middleware/auth');
 
 const router = express.Router();
 // Excluir post
@@ -225,11 +229,24 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Candidatar-se a um post
-router.post('/:id/candidatar', async (req, res) => {
+// Candidatar-se a um post (autenticado)
+router.post('/:id/candidatar', auth, async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.userId;
     const candidatura = await Candidatura.create({ postId: req.params.id, userId });
+    // criar notificação para o dono do post
+    try {
+      const post = await Post.findByPk(req.params.id);
+      if (post) {
+        await Notification.create({
+          userId: post.userId,
+          type: 'candidatura',
+          data: { postId: post.id, candidaturaId: candidatura.id, fromUserId: userId },
+        });
+      }
+    } catch (e) {
+      console.error('Erro criando notificação de candidatura:', e);
+    }
     res.status(201).json(candidatura);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -246,22 +263,87 @@ router.get('/:id/candidaturas', async (req, res) => {
   }
 });
 
-// Aceitar candidato
-router.post('/:id/aceitar', async (req, res) => {
+// Aceitar candidato (só dono do post)
+router.post('/:id/aceitar', auth, async (req, res) => {
   try {
+    const ownerId = req.userId;
     const { candidaturaId } = req.body;
     const candidatura = await Candidatura.findByPk(candidaturaId);
     if (!candidatura) return res.status(404).json({ error: 'Candidatura não encontrada' });
+    const post = await Post.findByPk(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post não encontrado' });
+    if (post.userId !== ownerId) return res.status(403).json({ error: 'Somente o dono do post pode aceitar candidaturas' });
     candidatura.status = 'aceito';
     await candidatura.save();
     // Atualiza post
-    const post = await Post.findByPk(req.params.id);
     post.selecionadoId = candidatura.userId;
     post.status = 'em andamento';
     await post.save();
+    // criar servico e notificação ao contratado
+    try {
+      const servico = await Servico.create({
+        contratanteId: post.userId,
+        contratadoId: candidatura.userId,
+        postId: post.id,
+        titulo: post.titulo,
+        valor: post.valor,
+        descricao: post.descricao,
+        status: 'fazendo',
+      });
+      await Notification.create({
+        userId: candidatura.userId,
+        type: 'contratado',
+        data: { postId: post.id, servicoId: servico.id, fromUserId: post.userId },
+      });
+      // garantir conversa entre contratante (post.userId) e contratado
+      try {
+        let conv = await Conversation.findOne({ where: { userAId: post.userId, userBId: candidatura.userId } });
+        if (!conv) conv = await Conversation.findOne({ where: { userAId: candidatura.userId, userBId: post.userId } });
+        if (!conv) await Conversation.create({ userAId: post.userId, userBId: candidatura.userId });
+      } catch (e) { console.error('Erro criando conversa ao aceitar:', e); }
+    } catch (e) {
+      console.error('Erro criando servico/notification ao aceitar:', e);
+    }
     res.json({ ok: true });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+// Contratar diretamente (autenticado) - cria Servico e notificação
+router.post('/:id/contratar', auth, async (req, res) => {
+  try {
+    const contratanteId = req.userId;
+    const { contratadoId } = req.body; // optional
+    const post = await Post.findByPk(req.params.id);
+    if (!post) return res.status(404).json({ error: 'Post não encontrado' });
+    const contratado = contratadoId || post.userId;
+    const servico = await Servico.create({
+      contratanteId: contratanteId || post.userId,
+      contratadoId: contratado,
+      postId: post.id,
+      titulo: post.titulo,
+      valor: post.valor,
+      descricao: post.descricao,
+      status: 'fazendo',
+    });
+    // atualizar post selecionado e status
+    post.selecionadoId = contratado;
+    post.status = 'em andamento';
+    await post.save();
+    // criar notificação
+    await Notification.create({ userId: contratado, type: 'contratado', data: { postId: post.id, servicoId: servico.id, fromUserId: contratanteId } });
+    // garantir conversa entre contratante e contratado
+    try {
+      const asker = contratanteId || post.userId;
+      let conv = await Conversation.findOne({ where: { userAId: asker, userBId: contratado } });
+      if (!conv) conv = await Conversation.findOne({ where: { userAId: contratado, userBId: asker } });
+      if (!conv) await Conversation.create({ userAId: asker, userBId: contratado });
+    } catch (e) { console.error('Erro criando conversa ao contratar:', e); }
+    res.status(201).json({ ok: true, servico });
+  } catch (err) {
+    console.error('Erro ao contratar:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

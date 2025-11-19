@@ -1,0 +1,15 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/db');
+
+const Servico = sequelize.define('Servico', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  contratanteId: { type: DataTypes.INTEGER, allowNull: false },
+  contratadoId: { type: DataTypes.INTEGER, allowNull: false },
+  postId: { type: DataTypes.INTEGER, allowNull: true },
+  titulo: { type: DataTypes.STRING, allowNull: false },
+  status: { type: DataTypes.STRING, defaultValue: 'fazendo' }, // fazendo, feito
+  valor: { type: DataTypes.FLOAT, allowNull: true },
+  descricao: { type: DataTypes.TEXT, allowNull: true },
+});
+
+module.exports = Servico;

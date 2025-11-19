@@ -17,7 +17,7 @@ const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
-          <button onClick={() => navigate("/")} aria-label="Home" className="p-0 m-0">
+          <button onClick={() => navigate("/feed")} aria-label="Home" className="p-0 m-0">
             <img src="/logo-preta.svg" alt="Bizzy" className="h-8 w-auto" />
           </button>
           <div className="hidden md:flex relative w-64 lg:w-96">
@@ -43,7 +43,7 @@ const Header = () => {
             variant="ghost" 
             size="icon" 
             className="hover:bg-secondary"
-            onClick={() => navigate("/chat")}
+             onClick={() => navigate("/contacts")}
           >
             <MessageCircle className="h-5 w-5 text-darker-gray" />
           </Button>

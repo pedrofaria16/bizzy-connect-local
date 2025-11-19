@@ -7,6 +7,10 @@ const sequelize = require("./config/db");
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/post");
 const candidaturaRoutes = require("./routes/candidaturas");
+const notificationsRoutes = require("./routes/notifications");
+const chatRoutes = require("./routes/chat");
+const reviewsRoutes = require("./routes/reviews");
+const servicosRoutes = require("./routes/servicos");
 
 dotenv.config();
 
@@ -42,6 +46,10 @@ app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/candidaturas", candidaturaRoutes);
+app.use("/api/notifications", notificationsRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/reviews", reviewsRoutes);
+app.use("/api/servicos", servicosRoutes);
 
 const PORT = process.env.PORT || 5000;
 
