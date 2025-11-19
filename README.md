@@ -1,12 +1,19 @@
-# Welcome to your Lovable project
+# Conheça a Bizzy!
 
-## Project info
+## Resumo do projeto
 
 **URL**: https://lovable.dev/projects/c903b259-aec4-4d64-a602-aad63e4c0447
 
-## How can I edit this code?
+A Bizzy trata-se de uma rede social criada para conectar contratantes e trabalhadores.
+A plataforma permite que usuários criem perfis profissionais, publiquem ofertas de serviços, busquem trabalhadores disponíveis, entrem em contato e organizem acordos de trabalho de forma simples e prática.
+O site é voltado para pessoas que desejam contratar serviços e para trabalhadores que desejam divulgar suas habilidades e oportunidades de trabalho. 
 
-There are several ways of editing your application.
+## Objetivos
+
+- Facilitar o acesso aos trabalhos e trabalhadores.
+- Oferecer oportunidades para as pessoas.
+- Ajudar pesoas desempregadas. 
+
 
 **Use Lovable**
 
