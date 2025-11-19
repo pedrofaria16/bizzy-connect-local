@@ -63,6 +63,7 @@ const Profile = () => {
   const [loadingServicos, setLoadingServicos] = useState(false);
   const [reviewModal, setReviewModal] = useState<{ open: boolean; servicoId?: number; toUserId?: number }>({ open: false });
   const [reviewForm, setReviewForm] = useState<{ rating: number; comment: string }>({ rating: 5, comment: '' });
+  const [servicoDetail, setServicoDetail] = useState<any | null>(null);
   useEffect(() => {
     if (!viewedUserId) return;
     apiJson(`/api/auth/user?id=${viewedUserId}`)
@@ -80,6 +81,25 @@ const Profile = () => {
       .catch(console.error)
       .finally(() => setLoadingServicos(false));
   }, [isOwnProfile, storedUserId, viewedUserId]);
+
+  // Função para refazer o fetch de serviços
+  const refetchServicos = async () => {
+    try {
+      console.log('Refazendo fetch de serviços...');
+      const data = await apiJson('/api/servicos');
+      console.log('Serviços carregados:', data);
+      setServicos(data || { asContratado: [], asContratante: [] });
+    } catch (e) {
+      console.error('Erro ao refazer fetch de serviços:', e);
+    }
+  };
+
+  // Recarregar serviços periodicamente (a cada 3 segundos) enquanto perfil estiver aberto
+  useEffect(() => {
+    if (!isOwnProfile) return;
+    const interval = setInterval(refetchServicos, 3000);
+    return () => clearInterval(interval);
+  }, [isOwnProfile]);
 
   // Choose which profile to render: own storedUser or the viewed user's public profile
   const profileToShow = isOwnProfile ? storedUser : (viewedUser || null);
@@ -337,29 +357,57 @@ const Profile = () => {
                   <Card className="p-4">Carregando serviços...</Card>
                 ) : (
                   <>
-                    <h4 className="font-semibold mb-2">A fazer</h4>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="font-semibold">A fazer</h4>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={refetchServicos}
+                        className="text-xs"
+                      >
+                        Atualizar
+                      </Button>
+                    </div>
                     {servicos.asContratado.length === 0 ? (
                       <Card className="p-4">Nenhum serviço em andamento.</Card>
                     ) : servicos.asContratado.filter((s:any)=>s.status === 'fazendo').map((s:any) => (
                       <Card key={s.id} className="p-4">
                         <div className="flex items-center justify-between">
-                          <div>
+                          <div className="flex-1">
                             <h4 className="font-semibold text-foreground mb-1">{s.titulo}</h4>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 mb-2">
                               <Badge variant="outline" className="text-xs border-primary/30">Serviço</Badge>
                               <span className="text-xs text-muted-foreground">Valor: R$ {s.valor ?? '—'}</span>
                             </div>
+                            {s.endereco && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <MapPin className="h-3 w-3" />
+                                <span className="truncate">{s.endereco}</span>
+                              </div>
+                            )}
                           </div>
                           <div className="flex items-center gap-2">
-                            <Button variant="outline" onClick={async () => {
-                              try {
-                                const res = await apiFetch(`/api/servicos/${s.id}/feito`, { method: 'POST' });
-                                if (!res.ok) throw new Error('Falha');
-                                const updated = await res.json();
-                                setServicos((prev:any)=>({ ...prev, asContratado: prev.asContratado.map((x:any)=>x.id===updated.id?updated:x) }));
-                                setReviewModal({ open: true, servicoId: updated.id, toUserId: updated.contratanteId });
-                              } catch (e) { console.error(e); alert('Erro ao marcar como feito'); }
-                            }}>Marcar como feito</Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setServicoDetail(s)}
+                            >
+                              Ver Detalhes
+                            </Button>
+                            <Button 
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const res = await apiFetch(`/api/servicos/${s.id}/feito`, { method: 'POST' });
+                                  if (!res.ok) throw new Error('Falha');
+                                  const updated = await res.json();
+                                  setServicos((prev:any)=>({ ...prev, asContratado: prev.asContratado.map((x:any)=>x.id===updated.id?updated:x) }));
+                                  setReviewModal({ open: true, servicoId: updated.id, toUserId: updated.contratanteId });
+                                } catch (e) { console.error(e); alert('Erro ao marcar como feito'); }
+                              }}
+                            >
+                              Marcar como feito
+                            </Button>
                           </div>
                         </div>
                       </Card>
@@ -419,6 +467,54 @@ const Profile = () => {
                       }}>Enviar avaliação</Button>
                     </div>
                   </div>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+
+            {/* Serviço Detail Modal */}
+            {servicoDetail && (
+              <AlertDialog open={true} onOpenChange={(open)=>{ if(!open) setServicoDetail(null); }}>
+                <AlertDialogContent className="max-w-2xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{servicoDetail.titulo}</AlertDialogTitle>
+                  </AlertDialogHeader>
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    <div>
+                      <p className="text-sm font-semibold text-muted-foreground">Descrição</p>
+                      <p className="text-foreground mt-1">{servicoDetail.descricao || 'Sem descrição'}</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-muted-foreground">Valor</p>
+                        <p className="text-foreground mt-1">R$ {servicoDetail.valor?.toFixed(2) || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-muted-foreground">Status</p>
+                        <p className="text-foreground mt-1">{servicoDetail.status === 'fazendo' ? 'Em andamento' : servicoDetail.status === 'feito' ? 'Concluído' : 'Pendente'}</p>
+                      </div>
+                    </div>
+
+                    {servicoDetail.endereco && (
+                      <div>
+                        <p className="text-sm font-semibold text-muted-foreground">Endereço Completo</p>
+                        <div className="flex items-start gap-2 mt-1">
+                          <MapPin className="h-4 w-4 mt-0.5 text-primary flex-shrink-0" />
+                          <p className="text-foreground">{servicoDetail.endereco}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {servicoDetail.telefone && (
+                      <div>
+                        <p className="text-sm font-semibold text-muted-foreground">Telefone</p>
+                        <p className="text-foreground mt-1">{servicoDetail.telefone}</p>
+                      </div>
+                    )}
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Fechar</AlertDialogCancel>
+                  </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             )}

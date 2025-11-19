@@ -15,6 +15,7 @@ interface BackendPost {
   categoria: string;
   valor: number;
   data: string;
+  status?: string;
   foto?: string;
   telefone?: string;
   endereco?: string;
@@ -149,6 +150,9 @@ const Index = () => {
     });
 
     const filteredByCategory = items.filter(({ p }) => {
+      // Filtrar posts que não estão abertos
+      if (p.status && p.status !== 'aberto') return false;
+      
       if (!selectedCategories || selectedCategories.includes('Todos')) return true;
       if (selectedCategories.length === 0) return true;
       if (selectedCategories.includes(p.categoria)) return true;

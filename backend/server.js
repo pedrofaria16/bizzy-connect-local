@@ -55,10 +55,13 @@ const PORT = process.env.PORT || 5000;
 
 async function start() {
   try {
-  // ATENÇÃO: usar migrations em produção. Para evitar problemas com
-  // constraints no SQLite, chamar sync() sem alter em desenvolvimento.
-  await sequelize.sync();
-  console.log('Banco sincronizado (sync)');
+  // ATENÇÃO: usar migrations em produção. Para desenvolvimento, sincronizar banco.
+  // Use force: true apenas em desenvolvimento para resetar tabelas se houver conflitos
+  await sequelize.sync({ alter: true }).catch(async (err) => {
+    console.log('Erro ao usar alter, tentando sync normal:', err.message);
+    await sequelize.sync();
+  });
+  console.log('Banco sincronizado');
 
     app.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);

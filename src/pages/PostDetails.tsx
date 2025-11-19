@@ -27,12 +27,27 @@ const PostDetails = () => {
   const [post, setPost] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [candidatos, setCandidatos] = useState<any[]>([]);
+  const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     apiJson(`/api/posts/${id}`)
-      .then((data) => setPost(data))
+      .then((data) => {
+        setPost(data);
+        // Carregar candidatos do post
+        return apiJson(`/api/posts/${id}/candidaturas`);
+      })
+      .then((cands) => {
+        setCandidatos(cands || []);
+        // Verificar se o usuário atual já se candidatou
+        const userId = getStoredUserId();
+        if (userId && cands) {
+          const alreadyApplied = cands.some((c: any) => c.userId === Number(userId));
+          setHasApplied(alreadyApplied);
+        }
+      })
       .catch((err) => setError(err.message || 'Erro ao carregar'))
       .finally(() => setLoading(false));
   }, [id]);
@@ -173,64 +188,153 @@ const PostDetails = () => {
               {/* Candidatar / Contratar flow with confirmation dialogs */}
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline" className="flex-1 border-border">
-                    {isOffer ? 'Contratar' : 'Candidatar-se'}
+                  <Button 
+                    variant="outline" 
+                    className="flex-1 border-border"
+                    disabled={!isOffer && hasApplied}
+                  >
+                    {!isOffer && hasApplied ? 'Já se candidatou' : isOffer ? 'Contratar' : 'Candidatar-se'}
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      {isOffer ? 'Confirmar contratação' : 'Confirmar candidatura'}
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {isOffer ? 'Tem certeza que deseja contratar este profissional para o serviço?' : 'Tem certeza que deseja se candidatar a este serviço?'}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction asChild>
-                      <Button
-                        className="bg-primary"
-                        onClick={async () => {
-                          try {
-                            if (isOffer) {
-                              // contratar -> chamar novo endpoint /contratar
-                              const id = getStoredUserId();
-                              if (!id) return alert('Faça login para contratar.');
-                              const res = await apiFetch(`/api/posts/${post.id}/contratar`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ contratanteId: Number(id) })
-                              });
-                              if (!res.ok) throw new Error('Erro ao contratar');
-                              alert('Profissional contratado — notificação enviada.');
-                            } else {
-                              // candidatar
-                              const id = getStoredUserId();
-                              if (!id) return alert('Faça login para se candidatar.');
-                              const res = await apiFetch(`/api/posts/${post.id}/candidatar`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ userId: Number(id) }),
-                              });
-                              if (!res.ok) throw new Error('Erro ao candidatar');
-                              alert('Candidatura enviada. O autor recebeu uma notificação.');
+                {!isOffer && hasApplied ? null : (
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {isOffer ? 'Confirmar contratação' : 'Confirmar candidatura'}
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {isOffer ? 'Tem certeza que deseja contratar este profissional para o serviço?' : 'Tem certeza que deseja se candidatar a este serviço?'}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction asChild>
+                        <Button
+                          className="bg-primary"
+                          onClick={async () => {
+                            try {
+                              if (isOffer) {
+                                // contratar -> chamar novo endpoint /contratar
+                                const userId = getStoredUserId();
+                                if (!userId) return alert('Faça login para contratar.');
+                                const res = await apiFetch(`/api/posts/${post.id}/contratar`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ contratanteId: Number(userId) })
+                                });
+                                if (!res.ok) throw new Error('Erro ao contratar');
+                                alert('Profissional contratado — notificação enviada.');
+                              } else {
+                                // candidatar
+                                const userId = getStoredUserId();
+                                if (!userId) return alert('Faça login para se candidatar.');
+                                const res = await apiFetch(`/api/posts/${post.id}/candidatar`, {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ userId: Number(userId) }),
+                                });
+                                if (!res.ok) throw new Error('Erro ao candidatar');
+                                alert('Candidatura enviada. O autor recebeu uma notificação.');
+                                setHasApplied(true);
+                              }
+                            } catch (e) {
+                              console.error(e);
+                              alert(e.message || 'Erro na ação');
                             }
-                          } catch (e) {
-                            console.error(e);
-                            alert(e.message || 'Erro na ação');
-                          }
-                        }}
-                      >
-                        Confirmar
-                      </Button>
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
+                          }}
+                        >
+                          Confirmar
+                        </Button>
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                )}
               </AlertDialog>
             </div>
           )}
         </Card>
+
+        {isOwner && candidatos.length > 0 && (
+          <Card className="p-6 mb-6">
+            <h3 className="font-semibold text-lg mb-4 text-foreground">Candidatos ({candidatos.length})</h3>
+            <div className="space-y-3">
+              {candidatos.map((cand: any) => {
+                const user = cand.User;
+                const isSelected = post.selecionadoId === user?.id;
+                
+                return (
+                  <div key={cand.id} className="flex items-center justify-between p-4 rounded-lg bg-secondary/30 border border-border">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-12 w-12">
+                        {user?.foto ? <AvatarImage src={user.foto} /> : null}
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {user?.name ? user.name.split(' ').map((s:string)=>s[0]).slice(0,2).join('').toUpperCase() : 'C'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="font-semibold text-foreground">{user?.name || 'Usuário'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {cand.status === 'aceito' ? '✓ Contratado' : cand.status === 'recusado' ? '✗ Recusado' : 'Pendente'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {!isSelected && cand.status === 'pendente' && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" className="bg-primary hover:bg-primary-light">
+                              Contratar
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Confirmar contratação</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja contratar {user?.name}?
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction asChild>
+                                <Button
+                                  className="bg-primary"
+                                  onClick={async () => {
+                                    try {
+                                      const res = await apiFetch(`/api/posts/${post.id}/aceitar`, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ candidaturaId: cand.id })
+                                      });
+                                      if (!res.ok) throw new Error('Erro ao contratar');
+                                      alert('Candidato contratado com sucesso!');
+                                      // Atualizar estado local
+                                      setCandidatos(prev => 
+                                        prev.map(c => c.id === cand.id ? { ...c, status: 'aceito' } : c)
+                                      );
+                                      setPost((p: any) => ({ ...p, selecionadoId: user?.id, status: 'em andamento' }));
+                                    } catch (e) {
+                                      console.error(e);
+                                      alert(e.message || 'Erro ao contratar');
+                                    }
+                                  }}
+                                >
+                                  Confirmar
+                                </Button>
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
+                      {isSelected && (
+                        <Badge className="bg-primary">Selecionado</Badge>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        )}
 
         <Card className="p-6">
           <h3 className="font-semibold text-lg mb-4 text-foreground">Sobre o(a) profissional</h3>

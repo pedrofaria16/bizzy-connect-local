@@ -233,10 +233,20 @@ router.put('/:id', async (req, res) => {
 router.post('/:id/candidatar', auth, async (req, res) => {
   try {
     const userId = req.userId;
-    const candidatura = await Candidatura.create({ postId: req.params.id, userId });
+    const postId = req.params.id;
+    
+    // Verificar se já existe candidatura do mesmo usuário para este post
+    const existingCandidatura = await Candidatura.findOne({
+      where: { postId, userId }
+    });
+    if (existingCandidatura) {
+      return res.status(400).json({ error: 'Você já se candidatou para este serviço' });
+    }
+    
+    const candidatura = await Candidatura.create({ postId, userId });
     // criar notificação para o dono do post
     try {
-      const post = await Post.findByPk(req.params.id);
+      const post = await Post.findByPk(postId);
       if (post) {
         await Notification.create({
           userId: post.userId,
@@ -288,6 +298,10 @@ router.post('/:id/aceitar', auth, async (req, res) => {
         titulo: post.titulo,
         valor: post.valor,
         descricao: post.descricao,
+        endereco: post.endereco,
+        telefone: post.telefone,
+        lat: post.lat,
+        lon: post.lon,
         status: 'fazendo',
       });
       await Notification.create({
@@ -325,6 +339,10 @@ router.post('/:id/contratar', auth, async (req, res) => {
       titulo: post.titulo,
       valor: post.valor,
       descricao: post.descricao,
+      endereco: post.endereco,
+      telefone: post.telefone,
+      lat: post.lat,
+      lon: post.lon,
       status: 'fazendo',
     });
     // atualizar post selecionado e status

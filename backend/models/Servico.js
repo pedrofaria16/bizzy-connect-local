@@ -10,6 +10,10 @@ const Servico = sequelize.define('Servico', {
   status: { type: DataTypes.STRING, defaultValue: 'fazendo' }, // fazendo, feito
   valor: { type: DataTypes.FLOAT, allowNull: true },
   descricao: { type: DataTypes.TEXT, allowNull: true },
+  endereco: { type: DataTypes.STRING, allowNull: true },
+  telefone: { type: DataTypes.STRING, allowNull: true },
+  lat: { type: DataTypes.FLOAT, allowNull: true },
+  lon: { type: DataTypes.FLOAT, allowNull: true },
 });
 
 module.exports = Servico;

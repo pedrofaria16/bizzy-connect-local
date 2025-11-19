@@ -1,7 +1,8 @@
 import { MapPin, Star, Clock, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { apiFetch, getStoredUserId } from '@/lib/api';
+import { apiFetch, getStoredUserId, apiJson } from '@/lib/api';
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -49,6 +50,23 @@ const PostCard = ({
   authorId,
 }: PostCardProps) => {
   const navigate = useNavigate();
+  const [hasApplied, setHasApplied] = useState(false);
+  
+  useEffect(() => {
+    // Verificar se o usuário já se candidatou
+    const checkIfApplied = async () => {
+      try {
+        const userId = getStoredUserId();
+        if (!userId) return;
+        const candidaturas = await apiJson(`/api/candidaturas?userId=${userId}`);
+        const alreadyApplied = candidaturas.some((c: any) => c.postId === id);
+        setHasApplied(alreadyApplied);
+      } catch (e) {
+        console.warn('Erro ao verificar candidaturas:', e);
+      }
+    };
+    checkIfApplied();
+  }, [id]);
   // Extract only neighborhood (bairro) and city (cidade) from a full address string.
   const extractNeighborhoodCity = (endereco?: string, cidade?: string) => {
     if (!endereco && !cidade) return 'Local não informado';
@@ -180,59 +198,63 @@ const PostCard = ({
                     <Button
                       className="flex-1 bg-primary hover:bg-primary-light"
                       onClick={(e) => { e.stopPropagation(); }}
+                      disabled={!inferIsOffer && hasApplied}
                     >
-                      {inferIsOffer ? "Contratar" : "Candidatar-se"}
+                      {!inferIsOffer && hasApplied ? "Já se candidatou" : inferIsOffer ? "Contratar" : "Candidatar-se"}
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        {inferIsOffer ? 'Confirmar contratação' : 'Confirmar candidatura'}
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {inferIsOffer ? 'Tem certeza que deseja contratar este profissional para o serviço?' : 'Tem certeza que deseja se candidatar a este serviço?'}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction asChild>
-                        <Button
-                          className="bg-primary"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            try {
-                              if (inferIsOffer) {
-                                const idUser = getStoredUserId();
-                                if (!idUser) return alert('Faça login para contratar.');
-                                const res = await apiFetch(`/api/posts/${id}/contratar`, {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ contratanteId: Number(idUser) })
-                                });
-                                if (!res.ok) throw new Error('Erro ao contratar');
-                                alert('Profissional contratado — notificação enviada.');
-                              } else {
-                                const idUser = getStoredUserId();
-                                if (!idUser) return alert('Faça login para se candidatar.');
-                                const res = await apiFetch(`/api/posts/${id}/candidatar`, {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ userId: Number(idUser) })
-                                });
-                                if (!res.ok) throw new Error('Erro ao candidatar');
-                                alert('Candidatura enviada. O autor recebeu uma notificação.');
+                  {!inferIsOffer && hasApplied ? null : (
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          {inferIsOffer ? 'Confirmar contratação' : 'Confirmar candidatura'}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {inferIsOffer ? 'Tem certeza que deseja contratar este profissional para o serviço?' : 'Tem certeza que deseja se candidatar a este serviço?'}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                          <Button
+                            className="bg-primary"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                if (inferIsOffer) {
+                                  const idUser = getStoredUserId();
+                                  if (!idUser) return alert('Faça login para contratar.');
+                                  const res = await apiFetch(`/api/posts/${id}/contratar`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ contratanteId: Number(idUser) })
+                                  });
+                                  if (!res.ok) throw new Error('Erro ao contratar');
+                                  alert('Profissional contratado — notificação enviada.');
+                                } else {
+                                  const idUser = getStoredUserId();
+                                  if (!idUser) return alert('Faça login para se candidatar.');
+                                  const res = await apiFetch(`/api/posts/${id}/candidatar`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ userId: Number(idUser) })
+                                  });
+                                  if (!res.ok) throw new Error('Erro ao candidatar');
+                                  alert('Candidatura enviada. O autor recebeu uma notificação.');
+                                  setHasApplied(true);
+                                }
+                              } catch (err: any) {
+                                console.error(err);
+                                alert(err?.message || 'Erro na ação');
                               }
-                            } catch (err: any) {
-                              console.error(err);
-                              alert(err?.message || 'Erro na ação');
-                            }
-                          }}
-                        >
-                          Confirmar
-                        </Button>
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
+                            }}
+                          >
+                            Confirmar
+                          </Button>
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  )}
                 </AlertDialog>
 
                 <Button 

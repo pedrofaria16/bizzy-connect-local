@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+const getStoredUserId = () => {
+  try {
+    const raw = typeof window !== 'undefined' ? (localStorage.getItem('bizzy_user') || localStorage.getItem('user')) : null;
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed?.id ?? parsed;
+  } catch (e) { return null; }
+};
+
 const Notifications = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -19,7 +27,7 @@ const Notifications = () => {
         // for message notifications, fetch sender info and attach as `fromUser` for display
         const enriched = await Promise.all(arr.map(async (n: any) => {
           try {
-            if (n.type === 'message' && n.data && n.data.fromUserId) {
+            if ((n.type === 'message' || n.type === 'candidatura' || n.type === 'contratado') && n.data && n.data.fromUserId) {
               const u = await apiJson(`/api/auth/user?id=${n.data.fromUserId}`);
               return { ...n, fromUser: u };
             }
@@ -58,6 +66,36 @@ const Notifications = () => {
         <div className="space-y-3">
           {notifications.map((notification) => {
             const type = notification.type;
+            const fromUserId = notification.data?.fromUserId;
+            
+            const handleOpenMessage = async (e: React.MouseEvent) => {
+              e.stopPropagation();
+              markRead(notification.id);
+              try {
+                const convId = notification.data?.conversationId;
+                if (convId) {
+                  navigate(`/chat?conversationId=${convId}&toUserId=${fromUserId}`);
+                } else if (fromUserId) {
+                  try {
+                    const conv = await apiJson('/api/chat/conversation', { 
+                      method: 'POST', 
+                      headers: { 'Content-Type': 'application/json' }, 
+                      body: JSON.stringify({ userAId: Number(getStoredUserId()), userBId: Number(fromUserId) }) 
+                    });
+                    navigate(`/chat?conversationId=${conv.id}&toUserId=${fromUserId}`);
+                  } catch (e) {
+                    console.warn('Erro criando/recuperando conversa:', e);
+                    navigate(`/chat?toUserId=${fromUserId}`);
+                  }
+                } else {
+                  navigate('/chat');
+                }
+              } catch (e) {
+                console.error('Erro ao abrir chat:', e);
+                navigate('/chat');
+              }
+            };
+            
             return (
               <Card
                 key={notification.id}
@@ -66,18 +104,15 @@ const Notifications = () => {
                     markRead(notification.id);
                     if (type === 'message') {
                       try {
-                        const fromUserId = notification.data?.fromUserId;
                         const convId = notification.data?.conversationId;
                         if (convId) {
                           navigate(`/chat?conversationId=${convId}&toUserId=${fromUserId}`);
                         } else if (fromUserId) {
-                          // create or fetch conversation then navigate
                           try {
                             const conv = await apiJson('/api/chat/conversation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userAId: Number(getStoredUserId()), userBId: Number(fromUserId) }) });
                             navigate(`/chat?conversationId=${conv.id}&toUserId=${fromUserId}`);
                           } catch (e) {
                             console.warn('Erro criando/recuperando conversa:', e);
-                            // fallback: navigate to chat with toUserId (Chat page will try to resolve)
                             navigate(`/chat?toUserId=${fromUserId}`);
                           }
                         } else {
@@ -113,6 +148,16 @@ const Notifications = () => {
                           <span className="font-semibold">{notification.fromUser?.name || 'Usuário'}</span>{' '}
                           <span>enviou uma mensagem</span>
                         </>
+                      ) : notification.type === 'candidatura' ? (
+                        <>
+                          <span className="font-semibold">{notification.fromUser?.name || 'Usuário'}</span>{' '}
+                          <span>se candidatou para seu serviço</span>
+                        </>
+                      ) : notification.type === 'contratado' ? (
+                        <>
+                          <span className="font-semibold">{notification.fromUser?.name || 'Usuário'}</span>{' '}
+                          <span>te selecionou para o serviço</span>
+                        </>
                       ) : (
                         <><span className="font-semibold">Notificação</span>{' '}{notification.type}</>
                       )}
@@ -121,6 +166,19 @@ const Notifications = () => {
                       <p className="text-sm mt-1">"{notification.data.text}"</p>
                     ) : null}
                     <p className="text-xs text-muted-foreground mt-1">{new Date(notification.createdAt).toLocaleString()}</p>
+                    
+                    {(notification.type === 'candidatura' || notification.type === 'contratado') && fromUserId && (
+                      <div className="mt-3 flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="default"
+                          onClick={handleOpenMessage}
+                        >
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          Enviar Mensagem
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   {!notification.read && (
