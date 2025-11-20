@@ -229,8 +229,11 @@ const PostCard = ({
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ contratanteId: Number(idUser) })
                                   });
-                                  if (!res.ok) throw new Error('Erro ao contratar');
+                                  const payload = await res.json().catch(() => ({}));
+                                  if (!res.ok) return alert(payload.error || payload.message || 'Erro ao contratar');
                                   alert('Profissional contratado — notificação enviada.');
+                                  // refresh feed so the contracted post disappears
+                                  try { window.location.reload(); } catch (e) { navigate('/feed'); }
                                 } else {
                                   const idUser = getStoredUserId();
                                   if (!idUser) return alert('Faça login para se candidatar.');
@@ -239,7 +242,8 @@ const PostCard = ({
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ userId: Number(idUser) })
                                   });
-                                  if (!res.ok) throw new Error('Erro ao candidatar');
+                                  const payload = await res.json().catch(() => ({}));
+                                  if (!res.ok) return alert(payload.error || payload.message || 'Erro ao candidatar');
                                   alert('Candidatura enviada. O autor recebeu uma notificação.');
                                   setHasApplied(true);
                                 }

@@ -46,6 +46,7 @@ const CreatePost = () => {
     price: "",
     location: "",
     date: "",
+    time: "",
   });
 
   const [addrOpen, setAddrOpen] = useState(false);
@@ -105,6 +106,17 @@ const CreatePost = () => {
       }
       // ensure date present
       if (!dataCampo) dataCampo = new Date().toISOString();
+      // if user provided a date string (YYYY-MM-DD) and optional time (HH:MM), combine them
+      if (formData.date) {
+        const datePart = formData.date; // YYYY-MM-DD
+        const timePart = formData.time || '';
+        if (timePart) {
+          dataCampo = new Date(`${datePart}T${timePart}`).toISOString();
+        } else {
+          // no time provided, default to start of day in local timezone
+          dataCampo = new Date(`${datePart}T00:00:00`).toISOString();
+        }
+      }
     } else {
       // provider offering service: price is optional but allowed
       if (formData.price) {
@@ -351,14 +363,23 @@ const CreatePost = () => {
                 <Label htmlFor="date">Data</Label>
                 <div className="relative">
                   <Calendar className="createpost-calendar-icon h-4 w-4" />
-                  <Input
-                    id="date"
-                    type="date"
-                    className="pl-10 h-12 createpost-date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    required
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      id="date"
+                      type="date"
+                      className="pl-10 h-12 createpost-date"
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      required
+                    />
+                    <Input
+                      id="time"
+                      type="time"
+                      className="pl-10 h-12 w-36"
+                      value={formData.time}
+                      onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
             )}

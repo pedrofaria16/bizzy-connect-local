@@ -63,6 +63,44 @@ async function start() {
   });
   console.log('Banco sincronizado');
 
+    // CHECAGEM RÁPIDA DE MIGRAÇÕES: garantir colunas esperadas (ex.: Servicos.endereco)
+    try {
+      const qi = sequelize.getQueryInterface();
+      const SequelizeLib = require('sequelize');
+      const DataTypes = SequelizeLib.DataTypes || SequelizeLib;
+      // Tabela criada por Sequelize usa pluralização: 'Servicos'
+      const tableName = 'Servicos';
+      let desc = null;
+      try {
+        desc = await qi.describeTable(tableName);
+      } catch (e) {
+        console.warn('[migrate] tabela', tableName, 'não encontrada ou erro ao descrever:', e.message || e);
+      }
+      if (desc) {
+        // colunas que esperamos existir na tabela Servicos
+        const expected = {
+          endereco: { type: DataTypes.STRING || DataTypes.TEXT, allowNull: true },
+          telefone: { type: DataTypes.STRING, allowNull: true },
+          lat: { type: DataTypes.FLOAT, allowNull: true },
+          lon: { type: DataTypes.FLOAT, allowNull: true },
+          contratanteConfirmou: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+          contratadoConfirmou: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false }
+        };
+        for (const [col, def] of Object.entries(expected)) {
+          if (!desc[col]) {
+            try {
+              console.log(`[migrate] adicionando coluna faltante ${col} em ${tableName}`);
+              await qi.addColumn(tableName, col, def);
+            } catch (e) {
+              console.error('[migrate] falha ao adicionar coluna', col, e.message || e);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Erro na etapa de migração leve:', e.message || e);
+    }
+
     app.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);
     });

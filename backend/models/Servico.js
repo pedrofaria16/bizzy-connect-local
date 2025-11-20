@@ -8,6 +8,8 @@ const Servico = sequelize.define('Servico', {
   postId: { type: DataTypes.INTEGER, allowNull: true },
   titulo: { type: DataTypes.STRING, allowNull: false },
   status: { type: DataTypes.STRING, defaultValue: 'fazendo' }, // fazendo, feito
+  contratanteConfirmou: { type: DataTypes.BOOLEAN, defaultValue: false },
+  contratadoConfirmou: { type: DataTypes.BOOLEAN, defaultValue: false },
   valor: { type: DataTypes.FLOAT, allowNull: true },
   descricao: { type: DataTypes.TEXT, allowNull: true },
   endereco: { type: DataTypes.STRING, allowNull: true },

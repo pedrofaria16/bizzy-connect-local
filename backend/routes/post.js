@@ -278,6 +278,7 @@ router.post('/:id/aceitar', auth, async (req, res) => {
   try {
     const ownerId = req.userId;
     const { candidaturaId } = req.body;
+    console.log('[POST /api/posts/:id/aceitar] ownerId=', ownerId, 'postId=', req.params.id, 'candidaturaId=', candidaturaId);
     const candidatura = await Candidatura.findByPk(candidaturaId);
     if (!candidatura) return res.status(404).json({ error: 'Candidatura não encontrada' });
     const post = await Post.findByPk(req.params.id);
@@ -329,9 +330,14 @@ router.post('/:id/contratar', auth, async (req, res) => {
   try {
     const contratanteId = req.userId;
     const { contratadoId } = req.body; // optional
+    console.log('[POST /api/posts/:id/contratar] req.userId=', req.userId, 'body=', req.body, 'postId=', req.params.id);
     const post = await Post.findByPk(req.params.id);
     if (!post) return res.status(404).json({ error: 'Post não encontrado' });
     const contratado = contratadoId || post.userId;
+    if (!Number(contratanteId) || !Number(contratado)) {
+      console.error('[ERROR contratar] invalid contratante/contratado ids', { contratanteId, contratado });
+      return res.status(400).json({ error: 'IDs inválidos para contratante ou contratado' });
+    }
     const servico = await Servico.create({
       contratanteId: contratanteId || post.userId,
       contratadoId: contratado,

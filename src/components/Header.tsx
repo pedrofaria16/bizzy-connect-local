@@ -1,5 +1,6 @@
 import { Search, Bell, MessageCircle, User } from "lucide-react";
 import { useState, useEffect } from "react";
+import { apiJson } from '@/lib/api';
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,8 @@ const Header = () => {
 
   const [menuAberto, setMenuAberto] = useState(false);
   const [headerSearch, setHeaderSearch] = useState<string>("");
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   useEffect(() => {
     try {
       const params = new URLSearchParams(location.search);
@@ -22,6 +25,24 @@ const Header = () => {
       // ignore
     }
   }, [location.search]);
+
+  // buscar notificações para mostrar o indicador quando houver novas
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data: any[] = await apiJson('/api/notifications');
+        if (!mounted) return;
+        const unread = (data || []).filter(n => !n.read);
+        setHasUnreadNotifications(unread.length > 0);
+        setHasUnreadMessages(unread.some(n => n.type === 'message'));
+      } catch (e) {
+        // falha silenciosa
+        console.debug('Erro ao buscar notificações no header', e);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
   const abrirMenu = () => setMenuAberto((prev) => !prev);
 
   return (
@@ -58,7 +79,9 @@ const Header = () => {
             onClick={() => navigate("/notifications")}
           >
             <Bell className="h-5 w-5 text-darker-gray" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full"></span>
+            {hasUnreadNotifications && (
+              <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full" aria-hidden />
+            )}
           </Button>
           <Button 
             variant="ghost" 
@@ -67,6 +90,9 @@ const Header = () => {
              onClick={() => navigate("/contacts")}
           >
             <MessageCircle className="h-5 w-5 text-darker-gray" />
+            {hasUnreadMessages && (
+              <span className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full" aria-hidden />
+            )}
           </Button>
           {/* Perfil / Login */}
           {storedUser ? (

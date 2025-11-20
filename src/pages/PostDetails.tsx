@@ -134,7 +134,7 @@ const PostDetails = () => {
 
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>{post.createdAt ? new Date(post.createdAt).toLocaleString() : 'Publicado'}</span>
+                <span>{post.data ? `${new Date(post.data).toLocaleDateString()} ${new Date(post.data).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : (post.createdAt ? new Date(post.createdAt).toLocaleString() : 'Publicado')}</span>
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@ const PostDetails = () => {
                           className="bg-primary"
                           onClick={async () => {
                             try {
-                              if (isOffer) {
+                                if (isOffer) {
                                 // contratar -> chamar novo endpoint /contratar
                                 const userId = getStoredUserId();
                                 if (!userId) return alert('Faça login para contratar.');
@@ -222,18 +222,22 @@ const PostDetails = () => {
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ contratanteId: Number(userId) })
                                 });
-                                if (!res.ok) throw new Error('Erro ao contratar');
+                                const payload = await res.json().catch(() => ({}));
+                                if (!res.ok) return alert(payload.error || payload.message || 'Erro ao contratar');
                                 alert('Profissional contratado — notificação enviada.');
+                                // recarregar feed/página para atualizar listagem
+                                try { window.location.reload(); } catch (e) { navigate('/feed'); }
                               } else {
                                 // candidatar
                                 const userId = getStoredUserId();
                                 if (!userId) return alert('Faça login para se candidatar.');
-                                const res = await apiFetch(`/api/posts/${post.id}/candidatar`, {
+                                      const res = await apiFetch(`/api/posts/${post.id}/candidatar`, {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ userId: Number(userId) }),
                                 });
-                                if (!res.ok) throw new Error('Erro ao candidatar');
+                                const payload = await res.json().catch(() => ({}));
+                                if (!res.ok) return alert(payload.error || payload.message || 'Erro ao candidatar');
                                 alert('Candidatura enviada. O autor recebeu uma notificação.');
                                 setHasApplied(true);
                               }
@@ -305,7 +309,8 @@ const PostDetails = () => {
                                         headers: { 'Content-Type': 'application/json' },
                                         body: JSON.stringify({ candidaturaId: cand.id })
                                       });
-                                      if (!res.ok) throw new Error('Erro ao contratar');
+                                      const payload = await res.json().catch(() => ({}));
+                                      if (!res.ok) return alert(payload.error || payload.message || 'Erro ao contratar');
                                       alert('Candidato contratado com sucesso!');
                                       // Atualizar estado local
                                       setCandidatos(prev => 
