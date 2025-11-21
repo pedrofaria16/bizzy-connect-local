@@ -54,6 +54,8 @@ const CreatePost = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function buscarCepToDraft(rawCep: string) {
+    // do nothing when not in 'request' mode
+    if (postType !== 'request') return;
     const onlyDigits = rawCep.replace(/\D/g, '');
     if (onlyDigits.length !== 8) {
       if (onlyDigits.length === 0) {
@@ -138,6 +140,7 @@ const CreatePost = () => {
       valor: valorNum,
       data: dataCampo,
       telefone: user?.telefone || '',
+      type: postType,
     };
 
     // Include address fields only when present / when request
@@ -234,21 +237,16 @@ const CreatePost = () => {
               </Select>
             </div>
 
-            {postType === 'request' ? (
-              <div className="space-y-2">
-                <Label htmlFor="title">Título</Label>
-                <Input
-                  id="title"
-                  placeholder="Ex: Preciso de limpeza residencial"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
-              </div>
-            ) : (
-              <div className="space-y-2">
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="title">Título</Label>
+              <Input
+                id="title"
+                placeholder={postType === 'request' ? 'Ex: Preciso de limpeza residencial' : 'Ex: Limpeza doméstica'}
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                required
+              />
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Descrição</Label>
@@ -303,7 +301,7 @@ const CreatePost = () => {
                       <div className="space-y-3">
                         <div>
                           <Label>CEP</Label>
-                          <Input value={addrDraft.cep} onChange={(e)=>{ const v=e.target.value; setAddrDraft(d=>({...d, cep: v })); const digits = v.replace(/\D/g,''); if(digits.length===8) buscarCepToDraft(digits); if(digits.length===0) setAddrDraft(d=>({...d, rua:'',bairro:'',cidade:'',estado:''})); }} placeholder="CEP" />
+                          <Input value={addrDraft.cep} disabled={postType !== 'request'} onChange={(e)=>{ const v=e.target.value; setAddrDraft(d=>({...d, cep: v })); const digits = v.replace(/\D/g,''); if(digits.length===8) buscarCepToDraft(digits); if(digits.length===0) setAddrDraft(d=>({...d, rua:'',bairro:'',cidade:'',estado:''})); }} placeholder="CEP" />
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>

@@ -72,6 +72,8 @@ router.post('/', async (req, res) => {
     console.log('POST /api/posts req.body:', req.body);
     let { cep, cidade } = req.body;
     let lat = null, lon = null;
+    // Only require geocoding/CEP when the post is a 'request' (solicitar serviço).
+    const isRequest = req.body.type === 'request' || req.body.tipo === 'request';
     if (cep) {
       console.log('[DEBUG] CEP recebido:', cep);
       const coords = await geocodeCep(cep);
@@ -105,11 +107,17 @@ router.post('/', async (req, res) => {
           return res.status(400).json({ error: 'Não foi possível localizar o endereço informado. Tente outro CEP.' });
         }
       }
-    } else {
-      console.log('[DEBUG] Nenhum CEP informado no post.');
+    } else if (isRequest) {
+      console.log('[DEBUG] Nenhum CEP informado no post (request).');
       return res.status(400).json({ error: 'CEP obrigatório para localização.' });
+    } else {
+      // non-request posts (offers) may not have CEP/location; proceed with null lat/lon
+      console.log('[DEBUG] Nenhum CEP informado no post (offer) — criando sem geocoding.');
     }
     const postData = { ...req.body, lat, lon };
+    // map frontend `type` to DB `tipo` for persistence
+    if (req.body.type) postData.tipo = req.body.type;
+    if (req.body.tipo && !postData.tipo) postData.tipo = req.body.tipo;
     console.log('[DEBUG] Dados enviados para o banco:', postData);
     const post = await Post.create(postData);
     res.status(201).json(post);

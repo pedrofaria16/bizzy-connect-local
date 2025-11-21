@@ -10,6 +10,7 @@ const Post = sequelize.define('Post', {
   categoria: { type: DataTypes.STRING, allowNull: false },
   valor: { type: DataTypes.FLOAT, allowNull: false },
   data: { type: DataTypes.STRING, allowNull: false },
+  tipo: { type: DataTypes.STRING, allowNull: true },
   status: { type: DataTypes.STRING, defaultValue: 'aberto' },
   selecionadoId: { type: DataTypes.INTEGER, allowNull: true }, // quem foi aceito
   foto: { type: DataTypes.TEXT, allowNull: true },

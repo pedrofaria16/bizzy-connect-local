@@ -97,6 +97,16 @@ async function start() {
           }
         }
       }
+      // Also ensure the Posts table has the `tipo` column we recently added to the model
+      try {
+        const postsDesc = await qi.describeTable('Posts');
+        if (postsDesc && !postsDesc.tipo) {
+          console.log('[migrate] adicionando coluna faltante tipo em Posts');
+          await qi.addColumn('Posts', 'tipo', { type: DataTypes.STRING, allowNull: true });
+        }
+      } catch (e) {
+        console.warn('[migrate] não foi possível verificar/adicionar coluna `tipo` em Posts:', e.message || e);
+      }
     } catch (e) {
       console.warn('Erro na etapa de migração leve:', e.message || e);
     }

@@ -97,7 +97,7 @@ const PostCard = ({
   })();
 
   const badgeLabel = inferIsOffer ? 'Oferece' : 'Solicita';
-  const badgeClasses = inferIsOffer ? 'bg-primary hover:bg-primary-light' : 'bg-darker-gray text-primary-foreground';
+  const badgeClasses = inferIsOffer ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-darker-gray text-primary-foreground';
 
   return (
     <Card 
@@ -154,22 +154,33 @@ const PostCard = ({
             {description}
           </p>
           
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
-            {price && (
+          {/* For offers: show only price. For requests: show combined row with price + location + time (original layout). */}
+          {inferIsOffer ? (
+            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+              {price && (
+                <div>
+                  <span className="font-medium text-darker-gray">{price}</span>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
+              {price && (
+                <div className="flex items-center gap-1">
+                  <DollarSign className="h-4 w-4 text-primary" />
+                  <span className="font-medium text-darker-gray">{price}</span>
+                </div>
+              )}
               <div className="flex items-center gap-1">
-                <DollarSign className="h-4 w-4 text-primary" />
-                <span className="font-medium text-darker-gray">{price}</span>
+                <MapPin className="h-4 w-4" />
+                <span>{extractNeighborhoodCity(location)}{distance ? ` • ${distance}` : ''}</span>
               </div>
-            )}
-            <div className="flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              <span>{extractNeighborhoodCity(location)}{distance ? ` • ${distance}` : ''}</span>
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>{time}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              <span>{time}</span>
-            </div>
-          </div>
+          )}
           
           {/* If the current user is the author of the post, don't render action buttons */}
           {(() => {

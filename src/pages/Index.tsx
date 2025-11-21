@@ -37,7 +37,14 @@ const Index = () => {
   useEffect(() => {
     fetch('/api/posts')
       .then(res => res.json())
-      .then(data => setPosts(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setPosts(data);
+        } else {
+          console.error('Unexpected /api/posts response, expected array but got:', data);
+          setPosts([]);
+        }
+      })
       .catch(err => { console.error('Erro ao buscar posts', err); setPosts([]); });
   }, []);
 
@@ -246,11 +253,12 @@ const Index = () => {
         const avatarSrc = userFotoRaw && userFotoRaw.startsWith('/uploads') ? `${backendBase}${userFotoRaw}` : userFotoRaw || undefined;
 
         const avgForUser = (p.User?.id && ratingsMap[p.User.id]) ? (ratingsMap[p.User.id].avg) : 0;
+        const postType = p.type || p.tipo || (isRequest ? "request" : "offer");
         return (
         <PostCard
           id={p.id}
           key={p.id}
-          type={isRequest ? "request" : "offer"}
+          type={postType as "request" | "offer"}
           username={p.User?.name || 'Anônimo'}
             // Always prefer the author's profile photo (prefix host in dev when needed).
             avatar={avatarSrc}
@@ -259,9 +267,9 @@ const Index = () => {
           title={p.titulo}
           description={p.descricao}
           price={p.valor ? `R$ ${p.valor}` : undefined}
-          location={p.endereco || ''}
+          location={isRequest ? (p.endereco || '') : ''}
           distance={distanceStr}
-          time={new Date(p.data).toLocaleString()}
+          time={isRequest ? new Date(p.data).toLocaleString() : ''}
           authorId={p.User?.id ?? p.userId}
         />
       );

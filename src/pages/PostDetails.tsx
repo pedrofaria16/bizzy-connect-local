@@ -81,13 +81,13 @@ const PostDetails = () => {
   if (error) return <div className="min-h-screen flex items-center justify-center text-destructive">{error}</div>;
 
   const author = post.User || post.user || post.userId ? (post.User || { name: 'Usuário' }) : { name: 'Usuário' };
-  const isOffer = Number(post.valor) === 0;
+  const isOffer = (post.tipo === 'offer') || (post.type === 'offer') || Number(post.valor) === 0;
   const badgeLabel = isOffer ? 'Oferece' : 'Solicita';
   const priceNum = Number(post.valor || 0);
   const priceLabel = priceNum > 0 ? `R$ ${priceNum.toFixed(2)}` : 'valor a combinar';
 
   const extractNeighborhoodCity = (endereco?: string, cidade?: string) => {
-    if (!endereco && !cidade) return 'Local não informado';
+    if (!endereco && !cidade) return '';
     if (endereco) {
       const parts = endereco.split(',').map((s: string) => s.trim()).filter(Boolean);
       if (parts.length >= 3) {
@@ -98,9 +98,9 @@ const PostDetails = () => {
       }
       if (cidade) return cidade;
       const last = parts[parts.length - 1];
-      return last || 'Local não informado';
+      return last || '';
     }
-    return cidade || 'Local não informado';
+    return cidade || '';
   };
 
   return (
@@ -147,10 +147,12 @@ const PostDetails = () => {
                 <Badge className={isOffer ? 'bg-primary' : 'bg-darker-gray text-primary-foreground'}>{badgeLabel}</Badge>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>{post.data ? `${new Date(post.data).toLocaleDateString()} ${new Date(post.data).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : (post.createdAt ? new Date(post.createdAt).toLocaleString() : 'Publicado')}</span>
-              </div>
+              {!isOffer && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="h-4 w-4" />
+                  <span>{post.data ? `${new Date(post.data).toLocaleDateString()} ${new Date(post.data).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : (post.createdAt ? new Date(post.createdAt).toLocaleString() : 'Publicado')}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -171,13 +173,15 @@ const PostDetails = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
-              <MapPin className="h-5 w-5 text-primary" />
-              <div>
-                <p className="text-xs text-muted-foreground">Localização</p>
-                <p className="font-semibold text-darker-gray">{extractNeighborhoodCity(post.endereco, post.cidade)}</p>
+            {!isOffer && (
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                <MapPin className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Localização</p>
+                  <p className="font-semibold text-darker-gray">{extractNeighborhoodCity(post.endereco, post.cidade)}</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           <Separator className="my-6" />
