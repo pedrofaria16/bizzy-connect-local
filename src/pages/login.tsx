@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import '../css/login.css';
+import '../css/cadastro.css';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,9 +11,10 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.body.classList.add('body-login');
+    // Use the same body class as cadastro so layouts and background match exactly
+    document.body.classList.add('body-cadastro');
     return () => {
-      document.body.classList.remove('body-login');
+      document.body.classList.remove('body-cadastro');
     };
   }, []);
 
@@ -45,16 +46,16 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="container-login container">
-      <div className="flex-login">
-        <div className="login-img">
+    <div className="container container-cadastro">
+      <div className="flex-cadastro">
+        <div className="cadastro-img">
           <img src="src/assets/img/bonecos.svg" alt="" width="800px" />
         </div>
 
-        <form className="form-login" onSubmit={handleLogin}>
-          <div className="login-header">
-            <h1 id="title-login">Bem-vindo de volta!</h1>
-            <p className="login-subtitle">Entre com suas credenciais para acessar sua conta</p>
+        <form className="form-cadastro" onSubmit={handleLogin}>
+          <div className="cadastro-header">
+            <h1 id="title-cadastro">Bem-vindo de volta!</h1>
+            <p className="cadastro-subtitle">Entre com suas credenciais para acessar sua conta</p>
           </div>
 
           <div className="input-group">
@@ -65,7 +66,7 @@ const Login: React.FC = () => {
             <input
               placeholder="Digite seu e-mail..."
               type="email"
-              className="input-login"
+              className="input-cadastro"
               id="email-login"
               value={email}
               onChange={e => setEmail(e.target.value)}
@@ -82,7 +83,7 @@ const Login: React.FC = () => {
               <input
                 placeholder="Digite sua senha..."
                 type={showPassword ? 'text' : 'password'}
-                className="input-login"
+                className="input-cadastro"
                 id="senha-login"
                 value={senha}
                 onChange={e => setSenha(e.target.value)}
@@ -100,21 +101,21 @@ const Login: React.FC = () => {
 
           <div className="flex-confirm">
             <div className="flex-confirm-esquerda">
-              <a onClick={() => navigate('/cadastro')} className="link-cadastro">
+              <a onClick={() => navigate('/cadastro')} className="link-login" style={{background:'none',border:'none',padding:0,margin:0,display:'flex',alignItems:'center',gap:4,cursor:'pointer'}}>
                 <i className='bx bx-user-plus'></i>
                 Não tenho conta
               </a>
             </div>
 
             <div className="flex-confirm-direita">
-              <button type="submit" id="continuar-login">
+              <button type="submit" id="continuar-cadastro">
                 <i className='bx bx-log-in'></i>
                 Entrar
               </button>
             </div>
           </div>
 
-          <div className="login-footer">
+          <div className="cadastro-footer">
             <a href="#" className="forgot-password">
               <i className='bx bx-help-circle'></i>
               Esqueci minha senha

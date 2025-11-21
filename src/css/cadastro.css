@@ -92,21 +92,21 @@
 .flex-cadastro {
     display: flex;
     justify-content: center;
-    align-items: stretch; /* make children the same height */
+    align-items: center; /* center columns vertically so title aligns with login */
     width: 100%;
     gap: 32px;
     font-family: 'Mukta Malar';
+    flex-wrap: wrap; /* allow columns to wrap on narrow viewports to prevent overflow */
 }
 
 /* ===== Imagem lateral ===== */
 .cadastro-img {
-    /* make image a flexible column on the left */
+    /* flexible half column so layout matches login but can shrink */
     flex: 1 1 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    left: -10%;
     margin: 0;
 }
 
@@ -116,17 +116,20 @@
     object-fit: contain;
 }
 
+/* Address row layout for cadastro fields (original used inline styles per-field)
+   Reverting to original approach: no additional classes here. */
+
 /* ===== Formulário ===== */
 .form-cadastro {
-    /* right column with centered form content */
+    /* right column with centered form content - flexible so it shrinks on small screens */
     flex: 1 1 50%;
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 22px;
     margin: 0;
-    width: 80%;
-    margin-top: 13%;
+    max-width: 520px; /* cap width but allow shrinking */
+    width: 100%;
 }
 
 .cadastro-header {
@@ -189,9 +192,8 @@
 
 .input-cadastro {
     width: 450px;
-    max-width: 100%;
     height: 45px;
-    padding: 12px 10px;
+    padding: 12px 12px;
     border: none;
     background: #EDECEC;
     border-radius: 8px;
@@ -213,10 +215,10 @@
     max-width: 100%;
 }
 
-.password-input-wrapper .input-cadastro {
+.password-input-wrapper {
     padding-right: 45px; /* espaço para o ícone */
     /* restaurar largura fixa do campo de senha como antes, mas permitir reduzir em telas menores */
-    width: 450px;
+        width: 100%;
     max-width: 100%;
 }
 

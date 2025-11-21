@@ -189,15 +189,21 @@ const Index = () => {
       }
     }
 
+      const backendBase = import.meta.env.DEV ? 'http://localhost:5000' : '';
       return finalItems.map(({ p, parsedValor, isRequest, km }) => {
       const distanceStr = isNaN(km) ? '--' : formatDistance(km);
-      return (
+        // Normalize author's foto to a full URL when necessary (dev server serves uploads from backend)
+        const userFotoRaw = p.User?.foto;
+        const avatarSrc = userFotoRaw && userFotoRaw.startsWith('/uploads') ? `${backendBase}${userFotoRaw}` : userFotoRaw || undefined;
+
+        return (
         <PostCard
           id={p.id}
           key={p.id}
           type={isRequest ? "request" : "offer"}
           username={p.User?.name || 'Anônimo'}
-          avatar={p.User?.foto || p.foto || undefined}
+            // Always prefer the author's profile photo (prefix host in dev when needed).
+            avatar={avatarSrc}
           rating={4.5}
           category={p.categoria}
           title={p.titulo}

@@ -20,6 +20,18 @@ body {
   line-height: 1.6;
 }
 
+/* Prevent horizontal scrolling on the landing page by default */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Ensure images don't overflow their containers */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -39,8 +51,19 @@ header {
 
 /* Header visual: keep a consistent background and shadow */
 .dynamic-header {
-  background-color: rgba(255,255,255,0.95);
+  /* Header padrão: opaco e com sombra sutil. */
+  background-color: rgba(255,255,255,0.98);
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* When the page is scrolled, keep the header appearance similar to default
+   but make it slightly translucent so the content underneath is faintly visible.
+   Add a subtle blur and gentle shadow to avoid a harsh change. */
+.dynamic-header.scrolled {
+  background-color: rgba(255,255,255,0.84); /* slightly more transparent */
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .header-content {
@@ -86,12 +109,20 @@ nav ul li a {
 }
 
 /* Links brancos no estado transparente */
-.dynamic-header.transparent nav ul li a {
+.dynamic-header nav ul li a {
   color: black;
 }
 
-.dynamic-header.transparent nav ul li a:hover {
+.dynamic-header nav ul li a:hover {
   color: #ff8800;
+}
+
+/* quando o usuário rolar a página, aplicar o estilo translúcido/blur */
+.dynamic-header.scrolled {
+  background-color: rgba(255,255,255,0.84);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .btn {
@@ -110,18 +141,42 @@ nav ul li a {
   color: var(--white);
 }
 
+/* Header button: make the current hover style the default, and on hover show white with small shadow and black text */
+.dynamic-header .btn {
+  background-color: var(--black);
+  color: var(--white);
+  padding: 10px 20px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+}
+
+.dynamic-header .btn:hover {
+  background-color: var(--white);
+  color: var(--black);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
 /* Hero Section */
 .hero {
   position: relative;
   isolation: isolate;
+  /* Ensure the banner always fills the viewport height */
   min-height: 100vh;
+  height: 100vh;
   background-image: url('../assets/img/Banner.svg');
   background-size: cover;
   background-repeat: no-repeat;
+    /* Shift the background slightly down so faces near the top become visible
+      while still covering the full viewport. Adjust the percentage to move more/less. */
+    background-position: center 25%;
   display: flex;
   align-items: center;
   justify-content: flex-start; /* left-aligned content */
   padding: 0; /* layout managed by inner .hero-content */
+  overflow: hidden;
 }
 
 .hero-content {
@@ -131,7 +186,10 @@ nav ul li a {
   justify-content: center;
   max-width: 1200px;
   margin-left: 4vw;
-  margin-top: 560px; /* less aggressive than before, preserves visual spacing */
+  /* center vertically within the full-height banner */
+  margin-top: 0;
+  padding: 6rem 0;
+  z-index: 2;
 }
 
 .hero h2 {
@@ -146,6 +204,39 @@ nav ul li a {
   /*max-width: 1200px;*/
   margin: 0 auto 50px;
   color: var(--white);
+}
+
+/* Scroll hint arrow shown at bottom center of the hero prompting user to scroll */
+.scroll-arrow {
+  position: absolute;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  cursor: pointer;
+  opacity: 0.95;
+}
+
+.scroll-arrow svg {
+  width: 28px;
+  height: 28px;
+  fill: none;
+  stroke: white;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: bounce 1.5s infinite;
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+  100% { transform: translateY(0); }
 }
 
 /* Features Section */

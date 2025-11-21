@@ -9,6 +9,11 @@ function App() {
       <Hero />
       <Features />
       <HowItWorks />
+      <a className="scroll-arrow" href="#como-funciona" aria-label="Scroll down">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </a>
       <Testimonials />
       <Footer />
     </div>
@@ -24,30 +29,23 @@ function Header() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Altura do banner/hero section - baseado no CSS fornecido (90vh)
       const heroHeight = window.innerHeight * 0.9;
       const scrollPosition = window.scrollY;
-      
       setIsScrolled(scrollPosition > heroHeight);
     };
 
-    // Verifica a posição inicial
+    // Check initial position
     handleScroll();
 
-    // Adiciona o listener de scroll
     window.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <header className={`dynamic-header ${isScrolled ? 'scrolled' : 'transparent'}`}>
+    <header className={`dynamic-header ${isScrolled ? 'scrolled' : ''}`}>
       <div className="container">
         <div className="header-content">
-          <div className={`logo ${isScrolled ? 'visible' : 'hidden'}`}>
+          <div className="logo">
             <img className="logo" src="src/assets/img/logo-laranja.svg" alt="Logo Bizzy" onClick={() => navigate("/feed")} />
           </div>
           <nav>
