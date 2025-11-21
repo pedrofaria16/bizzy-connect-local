@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { apiJson, apiFetch } from '@/lib/api';
 import { toast } from "sonner";
-import { ArrowLeft, Star, MapPin, Calendar, Briefcase, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Star, MapPin, User, Briefcase, MoreHorizontal } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -40,9 +40,7 @@ const Profile = () => {
   // backend base for static uploads during development
   const backendBase = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '';
 
-  const reviews = [
-    { author: "João Silva", rating: 5, comment: "Excelente profissional! Muito dedicada e pontual.", date: "Há 2 dias" },
-  ];
+  const [publicReviewsData, setPublicReviewsData] = useState<{ reviews: any[]; avg: number; count: number }>({ reviews: [], avg: 0, count: 0 });
 
   const completedJobs = [ { title: "Limpeza Residencial", category: "Limpeza", date: "15/03/2024" } ];
 
@@ -64,12 +62,8 @@ const Profile = () => {
   const [reviewModal, setReviewModal] = useState<{ open: boolean; servicoId?: number; toUserId?: number }>({ open: false });
   const [reviewForm, setReviewForm] = useState<{ rating: number; comment: string }>({ rating: 5, comment: '' });
   const [servicoDetail, setServicoDetail] = useState<any | null>(null);
-  useEffect(() => {
-    if (!viewedUserId) return;
-    apiJson(`/api/auth/user?id=${viewedUserId}`)
-      .then((data) => setViewedUser(data))
-      .catch((err) => console.error('Erro ao buscar usuário visualizado', err));
-  }, [viewedUserId]);
+  const [reviewsByServico, setReviewsByServico] = useState<Record<string, any[]>>({});
+  
 
   // fetch services for profileToShow
   useEffect(() => {
@@ -81,6 +75,36 @@ const Profile = () => {
       .catch(console.error)
       .finally(() => setLoadingServicos(false));
   }, [isOwnProfile, storedUserId, viewedUserId]);
+  
+  // Também buscar avaliações (média + autores) para o perfil exibido
+  useEffect(() => {
+    const idToFetch = isOwnProfile ? storedUserId : viewedUserId;
+    if (!idToFetch) return;
+    apiJson(`/api/reviews?userId=${idToFetch}`)
+      .then((r:any) => {
+        if (r && typeof r === 'object' && Array.isArray(r.reviews)) {
+          setPublicReviewsData({ reviews: r.reviews, avg: r.avg || 0, count: r.count || 0 });
+        } else if (Array.isArray(r)) {
+          const count = r.length;
+          const avg = count === 0 ? 0 : r.reduce((s:any, it:any) => s + (it.rating || 0), 0) / count;
+          setPublicReviewsData({ reviews: r, avg: Number(avg.toFixed(2)), count });
+        } else {
+          setPublicReviewsData({ reviews: [], avg: 0, count: 0 });
+        }
+      })
+      .catch((e) => { console.error('Erro ao buscar avaliações', e); setPublicReviewsData({ reviews: [], avg: 0, count: 0 }); });
+  }, [isOwnProfile, storedUserId, viewedUserId]);
+
+  // Quando for perfil de outra pessoa, buscar os dados públicos desse usuário
+  useEffect(() => {
+    if (isOwnProfile) return;
+    if (!viewedUserId) return;
+    apiJson(`/api/auth/user?id=${viewedUserId}`)
+      .then((u:any) => {
+        if (u && typeof u === 'object') setViewedUser(u);
+      })
+      .catch((e) => { console.error('Erro ao buscar usuário público', e); setViewedUser(null); });
+  }, [isOwnProfile, viewedUserId]);
 
   // Função para refazer o fetch de serviços
   const refetchServicos = async () => {
@@ -89,6 +113,20 @@ const Profile = () => {
       const data = await apiJson('/api/servicos');
       console.log('Serviços carregados:', data);
       setServicos(data || { asContratado: [], asContratante: [] });
+      // fetch reviews for loaded servicos to determine review state
+      try {
+        const all = [...(data.asContratado||[]), ...(data.asContratante||[])];
+        for (const s of all) {
+          if (!s || !s.id) continue;
+          if (reviewsByServico[s.id]) continue;
+          (async (servId) => {
+            try {
+              const r = await apiJson(`/api/reviews/servico/${servId}`);
+              setReviewsByServico(prev => ({ ...prev, [servId]: Array.isArray(r) ? r : [] }));
+            } catch (e) { /* ignore per-serv fetch errors */ }
+          })(s.id);
+        }
+      } catch (e) { console.error('Erro ao carregar reviews por serviço', e); }
     } catch (e) {
       console.error('Erro ao refazer fetch de serviços:', e);
     }
@@ -112,6 +150,29 @@ const Profile = () => {
     const parts = endereco.split(',').map((s:string) => s.trim()).filter(Boolean);
     if (parts.length >= 2) return parts[parts.length - 2] || parts[parts.length - 1];
     return parts[parts.length - 1] || 'Cidade não informada';
+  };
+
+  // Helper: calculate age in years from a nascimento string (supports ISO or dd/mm/yyyy)
+  const calculateAge = (nascimento?: string | null) => {
+    if (!nascimento) return null;
+    let d = new Date(String(nascimento));
+    if (isNaN(d.getTime())) {
+      // try dd/mm/yyyy or d/m/yyyy
+      const parts = String(nascimento).split(/[\/\-\.]/).map((s) => s.trim());
+      if (parts.length === 3) {
+        const day = Number(parts[0]);
+        const month = Number(parts[1]);
+        let year = Number(parts[2]);
+        if (year < 100) year += 1900;
+        d = new Date(year, month - 1, day);
+      }
+    }
+    if (isNaN(d.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - d.getFullYear();
+    const m = today.getMonth() - d.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age--;
+    return age;
   };
 
   // Estado para editar perfil
@@ -252,8 +313,8 @@ const Profile = () => {
                   <h2 className="text-2xl font-bold text-foreground mb-2">{profileToShow?.name ?? 'Usuário'}</h2>
                   <div className="flex items-center gap-2 mb-2">
                     <Star className="h-5 w-5 fill-primary text-primary" />
-                    <span className="text-lg font-semibold text-darker-gray">4.8</span>
-                    <span className="text-sm text-muted-foreground">(24 avaliações)</span>
+                    <span className="text-lg font-semibold text-darker-gray">{(publicReviewsData.avg || 0).toFixed(1)}</span>
+                    <span className="text-sm text-muted-foreground">({publicReviewsData.count} avaliações)</span>
                   </div>
                 </div>
                 {isOwnProfile && (
@@ -280,8 +341,8 @@ const Profile = () => {
                   <span>{isOwnProfile ? (profileToShow?.endereco ?? 'Endereço não informado') : extractCity(profileToShow?.endereco, profileToShow?.cidade)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>{profileToShow?.nascimento ? `Nascimento: ${profileToShow.nascimento}` : 'Nascimento não informado'}</span>
+                  <User className="h-4 w-4" />
+                  <span>{profileToShow?.nascimento ? (calculateAge(profileToShow.nascimento) != null ? `Idade: ${calculateAge(profileToShow.nascimento)} anos` : 'Idade não informada') : 'Idade não informada'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4" />
@@ -368,9 +429,91 @@ const Profile = () => {
                         Atualizar
                       </Button>
                     </div>
-                    {servicos.asContratado.length === 0 ? (
-                      <Card className="p-4">Nenhum serviço em andamento.</Card>
-                    ) : servicos.asContratado.filter((s:any)=>s.status === 'fazendo').map((s:any) => (
+                    {
+                      // compute only the services that are actually 'a fazer' (status === 'fazendo')
+                      (() => {
+                        const fazendo = Array.isArray(servicos.asContratado) ? servicos.asContratado.filter((s:any) => s.status === 'fazendo') : [];
+                        if (fazendo.length === 0) {
+                          return (<Card className="p-4">Nenhum serviço em andamento.</Card>);
+                        }
+                        return fazendo.map((s:any) => (
+                          <Card key={s.id} className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-foreground mb-1">{s.titulo}</h4>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline" className="text-xs border-primary/30">Serviço</Badge>
+                              <span className="text-xs text-muted-foreground">Valor: R$ {s.valor ?? '—'}</span>
+                            </div>
+                            {s.endereco && (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <MapPin className="h-3 w-3" />
+                                <span className="truncate">{s.endereco}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setServicoDetail(s)}
+                            >
+                              Ver Detalhes
+                            </Button>
+                            {
+                              // For contratado (worker):
+                              // - if the worker already submitted a review for this servico and the contratante hasn't confirmed yet,
+                              //   disable the button and show 'Esperando contratante confirmar'.
+                              // - otherwise, keep previous behavior (disable until contratante confirmed and reviewed).
+                              (() => {
+                                const currentUserId = storedUser?.id;
+                                const isContratado = currentUserId && Number(currentUserId) === Number(s.contratadoId);
+                                const contratanteConfirmed = !!s.contratanteConfirmou;
+                                const contratanteReviewed = Array.isArray(reviewsByServico[s.id]||[]) && (reviewsByServico[s.id]||[]).some(r => Number(r.fromUserId) === Number(s.contratanteId));
+                                const trabalhadorReviewed = Array.isArray(reviewsByServico[s.id]||[]) && (reviewsByServico[s.id]||[]).some(r => Number(r.fromUserId) === Number(s.contratadoId));
+
+                                if (isContratado && trabalhadorReviewed && !contratanteConfirmed) {
+                                  return (<Button size="sm" disabled>Esperando contratante confirmar</Button>);
+                                }
+
+                                const disabledForContratado = isContratado && (!contratanteConfirmed || !contratanteReviewed);
+                                if (disabledForContratado) {
+                                  const msg = !contratanteConfirmed ? 'Aguardando confirmação do contratante' : 'Aguardando avaliação do contratante';
+                                  return (<Button size="sm" disabled title={msg}>{msg}</Button>);
+                                }
+
+                                return (
+                                  <Button 
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        const res = await apiFetch(`/api/servicos/${s.id}/feito`, { method: 'POST' });
+                                        if (!res.ok) throw new Error('Falha');
+                                        const updated = await res.json();
+                                        const serv = updated.serv || updated;
+                                        setServicos((prev:any)=>({ ...prev, asContratado: prev.asContratado.map((x:any)=>x.id===serv.id?serv:x) }));
+                                        setReviewModal({ open: true, servicoId: serv.id, toUserId: serv.contratanteId });
+                                      } catch (e) { console.error(e); alert(e?.message || 'Erro ao marcar como feito'); }
+                                    }}
+                                  >
+                                    Marcar como feito
+                                  </Button>
+                                );
+                              })()
+                            }
+                          </div>
+                        </div>
+                          </Card>
+                        ));
+                      })()
+                    }
+                    
+
+                    {/* Como contratante - permitir marcar como feito e avaliar contratado */}
+                    <h4 className="font-semibold mt-6 mb-2">Como contratante - A fazer</h4>
+                    {servicos.asContratante.filter((s:any)=>s.status === 'fazendo').length === 0 ? (
+                      <Card className="p-4">Nenhum serviço em andamento como contratante.</Card>
+                    ) : servicos.asContratante.filter((s:any)=>s.status === 'fazendo').map((s:any) => (
                       <Card key={s.id} className="p-4">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
@@ -401,9 +544,11 @@ const Profile = () => {
                                   const res = await apiFetch(`/api/servicos/${s.id}/feito`, { method: 'POST' });
                                   if (!res.ok) throw new Error('Falha');
                                   const updated = await res.json();
-                                  setServicos((prev:any)=>({ ...prev, asContratado: prev.asContratado.map((x:any)=>x.id===updated.id?updated:x) }));
-                                  setReviewModal({ open: true, servicoId: updated.id, toUserId: updated.contratanteId });
-                                } catch (e) { console.error(e); alert('Erro ao marcar como feito'); }
+                                  const serv = updated.serv || updated;
+                                  setServicos((prev:any)=>({ ...prev, asContratante: prev.asContratante.map((x:any)=>x.id===serv.id?serv:x) }));
+                                  // abrir modal para avaliar o contratado
+                                  setReviewModal({ open: true, servicoId: serv.id, toUserId: serv.contratadoId });
+                                } catch (e) { console.error(e); alert(e?.message || 'Erro ao marcar como feito'); }
                               }}
                             >
                               Marcar como feito
@@ -463,6 +608,27 @@ const Profile = () => {
                           if (!res.ok) throw new Error('Erro ao enviar avaliação');
                           alert('Avaliação enviada. Obrigado!');
                           setReviewModal({ open: false });
+                          // refetch reviews for the profile shown (or for the toUserId)
+                          try {
+                            const idForRefresh = profileToShow?.id || reviewModal.toUserId;
+                            if (idForRefresh) {
+                              const r:any = await apiJson(`/api/reviews?userId=${idForRefresh}`);
+                              if (r && typeof r === 'object' && Array.isArray(r.reviews)) {
+                                setPublicReviewsData({ reviews: r.reviews, avg: r.avg || 0, count: r.count || 0 });
+                              } else if (Array.isArray(r)) {
+                                const count = r.length;
+                                const avg = count === 0 ? 0 : r.reduce((s:any, it:any) => s + (it.rating || 0), 0) / count;
+                                setPublicReviewsData({ reviews: r, avg: Number(avg.toFixed(2)), count });
+                              }
+                              // also refresh per-servico reviews so UI for 'Marcar como feito' updates immediately
+                              try {
+                                if (reviewModal?.servicoId) {
+                                  const svcReviews = await apiJson(`/api/reviews/servico/${reviewModal.servicoId}`);
+                                  setReviewsByServico(prev => ({ ...prev, [String(reviewModal.servicoId)]: Array.isArray(svcReviews) ? svcReviews : [] }));
+                                }
+                              } catch (e) { /* ignore per-serv refresh errors */ }
+                            }
+                          } catch (e) { console.error('Erro ao recarregar avaliações após envio', e); }
                         } catch (e) { console.error(e); alert('Erro ao enviar avaliação'); }
                       }}>Enviar avaliação</Button>
                     </div>
@@ -527,29 +693,35 @@ const Profile = () => {
             </TabsList>
 
             <TabsContent value="reviews" className="space-y-4 mt-6">
-              {reviews.map((review, index) => (
-                <Card key={index} className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-secondary text-darker-gray">
-                          {review.author[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-semibold text-foreground">{review.author}</p>
-                        <p className="text-xs text-muted-foreground">{review.date}</p>
+              {publicReviewsData.reviews.length === 0 ? (
+                <Card className="p-4">Nenhuma avaliação encontrada.</Card>
+              ) : (
+                publicReviewsData.reviews.map((review: any, index: number) => (
+                  <Card key={index} className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-10 w-10">
+                          {review.fromUser && review.fromUser.foto ? (
+                            <AvatarImage src={review.fromUser.foto.startsWith('http') ? review.fromUser.foto : `${backendBase}${review.fromUser.foto}`} />
+                          ) : (
+                            <AvatarFallback className="bg-secondary text-darker-gray">{(review.fromUser?.name || 'U')[0]}</AvatarFallback>
+                          )}
+                        </Avatar>
+                        <div>
+                          <p className="font-semibold text-foreground">{review.fromUser ? review.fromUser.name : (review.fromUserId ? `Usuário ${review.fromUserId}` : 'Usuário')}</p>
+                          <p className="text-xs text-muted-foreground">{review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ''}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: review.rating || 0 }).map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                        ))}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      {[...Array(review.rating)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground">{review.comment}</p>
-                </Card>
-              ))}
+                    <p className="text-muted-foreground">{review.comment}</p>
+                  </Card>
+                ))
+              )}
             </TabsContent>
 
             <TabsContent value="jobs" className="space-y-4 mt-6">
@@ -567,7 +739,7 @@ const Profile = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-primary text-primary" />
-                      <span className="text-sm font-medium text-darker-gray">5.0</span>
+                      <span className="text-sm font-medium text-darker-gray">{(publicReviewsData.avg || 0).toFixed(1)}</span>
                     </div>
                   </div>
                 </Card>

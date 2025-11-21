@@ -10,4 +10,8 @@ const Review = sequelize.define('Review', {
   comment: { type: DataTypes.TEXT, allowNull: true },
 });
 
+// Associação com User (autor da avaliação)
+const User = require('./User');
+Review.belongsTo(User, { foreignKey: 'fromUserId', as: 'fromUser' });
+
 module.exports = Review;

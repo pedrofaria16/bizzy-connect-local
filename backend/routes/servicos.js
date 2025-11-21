@@ -1,6 +1,7 @@
 const express = require('express');
 const Servico = require('../models/Servico');
 const Notification = require('../models/Notification');
+const Review = require('../models/Review');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
@@ -31,6 +32,11 @@ router.post('/:id/feito', auth, async (req, res) => {
     if (Number(userId) === Number(serv.contratadoId)) {
       if (!serv.contratanteConfirmou) {
         return res.status(400).json({ error: 'Aguardando confirmação do contratante antes do contratado confirmar' });
+      }
+      // Additional rule: only allow contratado to confirm after contratante has submitted their avaliação
+      const contratanteReview = await Review.findOne({ where: { servicoId: serv.id, fromUserId: serv.contratanteId } });
+      if (!contratanteReview) {
+        return res.status(400).json({ error: 'Aguardando avaliação do contratante antes do contratado confirmar' });
       }
       if (!serv.contratadoConfirmou) { serv.contratadoConfirmou = true; changed = true; }
     }

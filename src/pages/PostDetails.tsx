@@ -52,6 +52,20 @@ const PostDetails = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
+  // If author data is incomplete (no name/description), try to fetch public user data
+  useEffect(() => {
+    const authorId = post?.User?.id || post?.userId;
+    if (!authorId) return;
+    const author = post?.User;
+    const needsFetch = !author || !author.name || author.name === 'Usuário' || (!author.description && !author.servicos && !author.telefone);
+    if (!needsFetch) return;
+    apiJson(`/api/auth/user?id=${authorId}`)
+      .then((u:any) => {
+        if (u && typeof u === 'object') setPost((p:any)=>({ ...p, User: { ...(p.User||{}), ...u } }));
+      })
+      .catch((e) => { console.error('Erro ao buscar author publico', e); });
+  }, [post]);
+
   // determine if the current logged-in user is the owner/author of the post
   const getCurrentUserId = () => {
     try {
@@ -126,7 +140,8 @@ const PostDetails = () => {
                   </h3>
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-primary text-primary" />
-                    <span className="font-medium text-darker-gray">4.8</span>
+                    <span className="font-medium text-darker-gray">{(author && (author.ratingAvg || author.ratingAvg === 0)) ? Number((author.ratingAvg || 0)).toFixed(1) : '—'}</span>
+                    {author && author.ratingCount ? <span className="text-xs text-muted-foreground">({author.ratingCount} avaliações)</span> : null}
                   </div>
                 </div>
                 <Badge className={isOffer ? 'bg-primary' : 'bg-darker-gray text-primary-foreground'}>{badgeLabel}</Badge>
@@ -358,7 +373,7 @@ const PostDetails = () => {
               <Star className="h-4 w-4 mt-1" />
               <div>
                 <div className="font-medium text-foreground">Avaliações</div>
-                <div>{/* If you store ratings, render here; fallback text: */}Sem avaliações</div>
+                <div>{(author && author.ratingCount) ? `${Number((author.ratingAvg||0)).toFixed(1)} (${author.ratingCount} avaliações)` : 'Sem avaliações'}</div>
               </div>
             </div>
           </div>

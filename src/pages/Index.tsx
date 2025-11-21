@@ -26,6 +26,7 @@ interface BackendPost {
 
 const Index = () => {
   const [posts, setPosts] = useState<BackendPost[] | null>(null);
+  const [ratingsMap, setRatingsMap] = useState<Record<number, { avg: number; count: number }>>({});
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Todos']);
   const [priceSort, setPriceSort] = useState<'asc' | 'desc' | null>(null);
@@ -39,6 +40,54 @@ const Index = () => {
       .then(data => setPosts(data))
       .catch(err => { console.error('Erro ao buscar posts', err); setPosts([]); });
   }, []);
+
+  // If some posts lack public `User` info (name/foto), fetch it per-user and merge.
+  useEffect(() => {
+    try {
+      if (!posts || posts.length === 0) return;
+      // find ids where we don't have a proper name
+      const missingIds = Array.from(new Set(posts
+        .map(p => (p.User?.id ?? p.userId))
+        .filter(Boolean)
+        .filter(id => {
+          const match = posts.find(x => (x.User?.id ?? x.userId) === id);
+          // if any post with this id has a name, skip fetching
+          if (match && match.User && match.User.name) return false;
+          return true;
+        })
+      ));
+      if (missingIds.length === 0) return;
+
+      // fetch public user for each missing id in parallel
+      Promise.all(missingIds.map(id => fetch(`/api/auth/user?id=${id}`).then(r => r.json()).catch(() => null)))
+        .then(usersArr => {
+          const usersById: Record<number, any> = {};
+          usersArr.forEach(u => { if (u && u.id) usersById[u.id] = u; });
+          if (Object.keys(usersById).length === 0) return;
+          setPosts(prev => prev ? prev.map(p => {
+            const uid = p.User?.id ?? p.userId;
+            if (!uid) return p;
+            const u = usersById[uid];
+            if (!u) return p;
+            return { ...p, User: { ...(p.User || {}), ...u } };
+          }) : prev);
+        })
+        .catch(e => console.warn('Erro ao buscar usuários públicos para posts', e));
+    } catch (e) { console.error('Erro no efeito de merge de usuários', e); }
+  }, [posts]);
+
+  // Quando os posts mudarem, buscar médias de avaliação para os autores
+  useEffect(() => {
+    try {
+      if (!posts || posts.length === 0) return;
+      const ids = Array.from(new Set(posts.map(p => (p.User?.id ?? p.userId)).filter(Boolean)));
+      if (ids.length === 0) return;
+      fetch(`/api/reviews/summary?userIds=${ids.join(',')}`)
+        .then(r => r.json())
+        .then((map) => setRatingsMap(map || {}))
+        .catch(e => console.error('Erro ao buscar summary de avaliações', e));
+    } catch (e) { console.error(e); }
+  }, [posts]);
 
   // sync searchQuery from URL param `q`
   useEffect(() => {
@@ -196,6 +245,7 @@ const Index = () => {
         const userFotoRaw = p.User?.foto;
         const avatarSrc = userFotoRaw && userFotoRaw.startsWith('/uploads') ? `${backendBase}${userFotoRaw}` : userFotoRaw || undefined;
 
+        const avgForUser = (p.User?.id && ratingsMap[p.User.id]) ? (ratingsMap[p.User.id].avg) : 0;
         return (
         <PostCard
           id={p.id}
@@ -204,7 +254,7 @@ const Index = () => {
           username={p.User?.name || 'Anônimo'}
             // Always prefer the author's profile photo (prefix host in dev when needed).
             avatar={avatarSrc}
-          rating={4.5}
+          rating={avgForUser || 0}
           category={p.categoria}
           title={p.titulo}
           description={p.descricao}

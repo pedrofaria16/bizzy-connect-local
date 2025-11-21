@@ -2,6 +2,7 @@ const express = require('express');
 const Post = require('../models/Post');
 const Candidatura = require('../models/Candidatura');
 const User = require('../models/User');
+const Review = require('../models/Review');
 const Notification = require('../models/Notification');
 const Servico = require('../models/Servico');
 const Conversation = require('../models/Conversation');
@@ -136,6 +137,19 @@ router.get('/', async (req, res) => {
     }
     // Caso geral: retorna posts com o usuário criador (sem candidaturas para não poluir)
     const posts = await Post.findAll({ include: [User] });
+    // Anexar estatísticas de avaliações (média e contagem) para cada autor
+    for (const post of posts) {
+      try {
+        const user = post.User;
+        if (user && user.id) {
+          const revs = await Review.findAll({ where: { toUserId: user.id } });
+          const count = revs.length;
+          const avg = count > 0 ? (revs.reduce((s, r) => s + (r.rating || 0), 0) / count) : 0;
+          // @ts-ignore
+          post.dataValues.User = { ...post.dataValues.User, ratingAvg: avg, ratingCount: count };
+        }
+      } catch (e) { console.error('Erro calculando stats de review para post:', e); }
+    }
     res.json(posts);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -147,6 +161,16 @@ router.get('/:id', async (req, res) => {
   try {
     const post = await Post.findByPk(req.params.id, { include: [User, Candidatura] });
     if (!post) return res.status(404).json({ error: 'Post não encontrado' });
+    try {
+      const user = post.User;
+      if (user && user.id) {
+        const revs = await Review.findAll({ where: { toUserId: user.id } });
+        const count = revs.length;
+        const avg = count > 0 ? (revs.reduce((s, r) => s + (r.rating || 0), 0) / count) : 0;
+        // @ts-ignore
+        post.dataValues.User = { ...post.dataValues.User, ratingAvg: avg, ratingCount: count };
+      }
+    } catch (e) { console.error('Erro calculando stats de review para post detalhe:', e); }
     res.json(post);
   } catch (err) {
     res.status(500).json({ error: err.message });
