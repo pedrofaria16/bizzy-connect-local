@@ -60,7 +60,6 @@ const Login: React.FC = () => {
 
           <div className="input-group">
             <label className="input-label">
-              <i className='bx bx-envelope'></i>
               E-mail
             </label>
             <input
@@ -76,7 +75,6 @@ const Login: React.FC = () => {
 
           <div className="input-group">
             <label className="input-label">
-              <i className='bx bx-lock-alt'></i>
               Senha
             </label>
             <div className="password-input-wrapper">
@@ -94,7 +92,6 @@ const Login: React.FC = () => {
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                <i className={showPassword ? 'bx bx-hide' : 'bx bx-show'}></i>
               </button>
             </div>
           </div>
@@ -102,14 +99,12 @@ const Login: React.FC = () => {
           <div className="flex-confirm">
             <div className="flex-confirm-esquerda">
               <a onClick={() => navigate('/cadastro')} className="link-login" style={{background:'none',border:'none',padding:0,margin:0,display:'flex',alignItems:'center',gap:4,cursor:'pointer'}}>
-                <i className='bx bx-user-plus'></i>
                 Não tenho conta
               </a>
             </div>
 
             <div className="flex-confirm-direita">
               <button type="submit" id="continuar-cadastro">
-                <i className='bx bx-log-in'></i>
                 Entrar
               </button>
             </div>
@@ -117,7 +112,6 @@ const Login: React.FC = () => {
 
           <div className="cadastro-footer">
             <a href="#" className="forgot-password">
-              <i className='bx bx-help-circle'></i>
               Esqueci minha senha
             </a>
           </div>

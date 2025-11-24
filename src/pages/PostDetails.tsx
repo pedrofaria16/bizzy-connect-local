@@ -178,7 +178,7 @@ const PostDetails = () => {
                 <MapPin className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-xs text-muted-foreground">Localização</p>
-                  <p className="font-semibold text-darker-gray">{extractNeighborhoodCity(post.endereco, post.cidade)}</p>
+                  <p className="font-semibold text-darker-gray">{post.endereco || extractNeighborhoodCity(post.endereco, post.cidade)}</p>
                 </div>
               </div>
             )}

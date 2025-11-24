@@ -30,3 +30,43 @@
 	transform: translateY(-50%);
 	color: hsl(var(--muted-foreground));
 }
+
+/* Fix icon alignment on very small screens: when date/time stack, align icon to the
+	 top of the first input so it doesn't appear vertically centered outside the input. */
+@media (max-width: 425px) {
+	.createpost-calendar-icon {
+		top: 0.9rem; /* align with the first stacked input padding */
+		transform: none;
+		z-index: 10;
+	}
+}
+
+/* Layout adjustments for date + time inputs to be responsive on small widths (eg. 375px)
+	 - allow wrapping when there's not enough horizontal space
+	 - date input grows, time input keeps compact width but becomes full-width on very small screens
+	 - ensure inputs don't overflow their container (min-width: 0 on flex children) */
+.relative > .flex {
+	display: flex;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.createpost-date {
+	flex: 1 1 160px; /* allow it to grow and shrink */
+	min-width: 0; /* important to enable truncation/overflow control inside flex */
+}
+
+/* time input in the date row: keep compact on larger screens but allow full width on very small screens */
+.relative > .flex input[type="time"],
+.relative > .flex .createpost-time {
+	flex: 0 0 9rem;
+	max-width: 9rem;
+}
+
+@media (max-width: 425px) {
+	.relative > .flex input[type="time"],
+	.relative > .flex .createpost-time {
+		flex: 1 1 100%;
+		max-width: 100%;
+	}
+}

@@ -146,7 +146,7 @@ const Cadastro: React.FC = () => {
     <div className="container container-cadastro ">
       <div className="flex-cadastro">
         <div className="cadastro-img">
-          <img src="src/assets/img/bonecos.svg" alt="" width="800px" />
+          <img src="src/assets/img/bonecos.svg" alt="" className="auth-side-img" />
         </div>
         <form
           className="form-cadastro"
@@ -177,7 +177,6 @@ const Cadastro: React.FC = () => {
               </div>
               <div className="input-group">
                 <label className="input-label">
-                  <i className="bx bx-envelope"></i>
                   E-mail
                 </label>
                 <input
@@ -191,7 +190,6 @@ const Cadastro: React.FC = () => {
               </div>
               <div className="input-group">
                 <label className="input-label">
-                  <i className="bx bx-lock-alt"></i>
                   Senha
                 </label>
                 <div className="password-input-wrapper">
@@ -208,13 +206,11 @@ const Cadastro: React.FC = () => {
                     className="password-toggle"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    <i className={showPassword ? "bx bx-hide" : "bx bx-show"}></i>
                   </button>
                 </div>
               </div>
               <div className="input-group">
                 <label className="input-label">
-                  <i className="bx bx-id-card"></i>
                   CPF
                 </label>
                 <input
@@ -232,45 +228,43 @@ const Cadastro: React.FC = () => {
             <>
               <div className="input-group">
                 <label className="input-label">
-                  <i className="bx bx-home"></i>
                   Endereço
                 </label>
-                {/* Top row: CEP (big), Estado (big), Cidade (small) */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {/* Top row: CEP, Estado, Cidade - use responsive classes */}
+                <div className="row-fields">
+                  <div className="field-col col-w-140">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>CEP</label>
-                    <input placeholder="CEP" type="text" className="input-cadastro" style={{ width: 140 }} value={cep} onChange={e => setCep(e.target.value)} />
+                    <input placeholder="CEP" type="text" className="input-cadastro" value={cep} onChange={e => setCep(e.target.value)} />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="field-col col-w-140">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>Estado</label>
-                    <input placeholder="Estado" type="text" className="input-cadastro" style={{ width: 140 }} value={estado} onChange={e => setEstado(e.target.value)} />
+                    <input placeholder="Estado" type="text" className="input-cadastro" value={estado} onChange={e => setEstado(e.target.value)} />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="field-col col-w-100">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>Cidade</label>
-                    <input placeholder="Cidade" type="text" className="input-cadastro" style={{ width: 100 }} value={cidade} onChange={e => setCidade(e.target.value)} />
+                    <input placeholder="Cidade" type="text" className="input-cadastro" value={cidade} onChange={e => setCidade(e.target.value)} />
                   </div>
                 </div>
 
                 {/* Bottom row: Rua (big), Nº (small), Bairro (big) */}
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <div className="row-fields" style={{ marginTop: 10 }}>
+                  <div className="field-col col-w-220">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>Rua</label>
-                    <input placeholder="Rua" type="text" className="input-cadastro" style={{ width: 220 }} value={rua} onChange={e => setRua(e.target.value)} required />
+                    <input placeholder="Rua" type="text" className="input-cadastro" value={rua} onChange={e => setRua(e.target.value)} required />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="field-col col-w-70">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>Nº</label>
-                    <input placeholder="Número" type="text" className="input-cadastro" style={{ width: 70 }} value={numero} onChange={e => setNumero(e.target.value)} required />
+                    <input placeholder="Número" type="text" className="input-cadastro" value={numero} onChange={e => setNumero(e.target.value)} required />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div className="field-col col-w-160">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>Bairro</label>
-                    <input placeholder="Bairro" type="text" className="input-cadastro" style={{ width: 160 }} value={bairro} onChange={e => setBairro(e.target.value)} required />
+                    <input placeholder="Bairro" type="text" className="input-cadastro" value={bairro} onChange={e => setBairro(e.target.value)} required />
                   </div>
                 </div>
               </div>
 
               <div className="input-group">
                 <label className="input-label">
-                  <i className="bx bx-briefcase"></i>
                   Serviços que trabalha
                 </label>
                 <div className="servicos-chips-group">
@@ -294,7 +288,6 @@ const Cadastro: React.FC = () => {
             <>
               <div className="input-group">
                 <label className="input-label">
-                  <i className="bx bx-phone"></i>
                   Telefone <span style={{color:'#e74c3c'}}>*</span>
                 </label>
                 <input
@@ -309,7 +302,6 @@ const Cadastro: React.FC = () => {
               </div>
               <div className="input-group">
                 <label className="input-label">
-                  <i className="bx bx-calendar"></i>
                   Data de nascimento <span style={{color:'#e74c3c'}}>*</span>
                 </label>
                 <input
@@ -341,7 +333,6 @@ const Cadastro: React.FC = () => {
                       <img src={fotoPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <div style={{ textAlign: 'center', color: '#999' }}>
-                        <i className="bx bx-camera" style={{ fontSize: 28 }}></i>
                       </div>
                     )}
                   </div>
@@ -352,25 +343,21 @@ const Cadastro: React.FC = () => {
           <div className="flex-confirm">
             <div className="flex-confirm-esquerda">
               <button type="button" onClick={() => navigate("/login") } className="link-login" style={{background:'none',border:'none',padding:0,margin:0,display:'flex',alignItems:'center',gap:4,cursor:'pointer'}}>
-                <i className="bx bx-log-in"></i>
                 Já tenho conta
               </button>
             </div>
             <div className="flex-confirm-direita">
               {step === 1 && (
                 <button type="button" id="continuar-cadastro" onClick={() => setStep(2)}>
-                  <i className="bx bx-right-arrow-alt"></i>
                   Próximo
                 </button>
               )}
               {step === 2 && (
                 <div style={{ display: 'flex', gap: 12 }}>
                   <button type="button" id="continuar-cadastro" onClick={() => setStep(1)}>
-                    <i className="bx bx-left-arrow-alt"></i>
                     Voltar
                   </button>
                   <button type="button" id="continuar-cadastro" onClick={() => setStep(3)}>
-                    <i className="bx bx-right-arrow-alt"></i>
                     Próximo
                   </button>
                 </div>
@@ -378,11 +365,9 @@ const Cadastro: React.FC = () => {
               {step === 3 && (
                 <div style={{ display: 'flex', gap: 12 }}>
                   <button type="button" id="continuar-cadastro" onClick={() => setStep(2)}>
-                    <i className="bx bx-left-arrow-alt"></i>
                     Voltar
                   </button>
                   <button type="submit" id="continuar-cadastro">
-                    <i className="bx bx-user-plus"></i>
                     Cadastrar
                   </button>
                 </div>

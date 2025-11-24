@@ -147,8 +147,10 @@ All colors MUST be HSL.
 /* Menu opções (header) */
 @layer components {
   .menu-opcoes {
-  /* fixed width so the background size is predictable (narrow column) */
-  @apply absolute left-0 top-full mt-2 w-48 bg-card rounded-md shadow-md border border-border transform origin-top-left scale-95 opacity-0 pointer-events-none;
+  /* fixed width so the background size is predictable (narrow column)
+     Position to the right of its relative container so it doesn't overflow
+     the viewport when the header is aligned to the right on small screens. */
+  @apply absolute right-0 top-full mt-2 w-48 bg-card rounded-md shadow-md border border-border transform origin-top-right scale-95 opacity-0 pointer-events-none;
     z-index: 60;
     transition: var(--transition-smooth);
   }

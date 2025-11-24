@@ -99,18 +99,73 @@
     flex-wrap: wrap; /* allow columns to wrap on narrow viewports to prevent overflow */
 }
 
+/* Use a fixed two-column grid on laptop/desktop screens so widths never change between steps */
+@media (min-width: 1024px) {
+    .flex-cadastro {
+        display: grid;
+        grid-template-columns: 520px 520px;
+        gap: 48px;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+/* Laptop-specific: keep the same layout as the normal (desktop) design,
+   but scale the columns down slightly to fit typical laptop screens.
+   This only adjusts sizes — no other layout rules are changed. */
+@media (min-width: 1024px) and (max-width: 1366px) {
+    .flex-cadastro {
+        grid-template-columns: 480px 480px;
+        gap: 36px;
+    }
+    .cadastro-img, .cadastro-img img, .auth-side-img, .form-cadastro {
+        max-width: 480px;
+    }
+}
+
+/* ensure the two-column grid is centered inside the container on large viewports */
+@media (min-width: 1200px) {
+    .flex-cadastro { width: min(1100px, 100%); margin: 0 auto; }
+}
+
+/* Tablet: make the form a bit smaller and keep layout side-by-side but tighter */
+@media (min-width: 769px) and (max-width: 1023px) {
+    /* use fluid two-column grid: columns share space but cap max widths */
+    .flex-cadastro {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        justify-content: center;
+        align-items: start;
+        width: min(1000px, 100%);
+        margin: 0 auto;
+    }
+    .cadastro-img { max-width: 460px; }
+    .form-cadastro { max-width: 560px; }
+}
+
+/* Keep the orange curve from overlapping the form on tablet by adding top padding
+   and adjusting the background positioning slightly */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .form-cadastro { padding-top: 40px; }
+}
+
 /* ===== Imagem lateral ===== */
 .cadastro-img {
-    /* flexible half column so layout matches login but can shrink */
-    flex: 1 1 50%;
+    /* fixed column width to keep lateral image stable across steps */
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     margin: 0;
+    width: 100%;
+    max-width: 520px;
 }
 
-.cadastro-img img {
+.cadastro-img img,
+.auth-side-img {
+    width: 100%;
+    max-width: 520px;
     height: auto;
     display: block;
     object-fit: contain;
@@ -121,15 +176,50 @@
 
 /* ===== Formulário ===== */
 .form-cadastro {
-    /* right column with centered form content - flexible so it shrinks on small screens */
-    flex: 1 1 50%;
+    /* right column with centered form content - fixed width in large screens */
     display: flex;
     flex-direction: column;
     justify-content: center;
     gap: 22px;
     margin: 0;
-    max-width: 520px; /* cap width but allow shrinking */
     width: 100%;
+    max-width: 520px;
+}
+
+/* Row helpers for address inputs to avoid inline fixed pixels */
+.row-fields {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.field-col { display:flex; flex-direction:column; }
+.col-w-140 { width:140px; max-width:100%; box-sizing:border-box; }
+.col-w-100 { width:100px; max-width:100%; box-sizing:border-box; }
+.col-w-220 { width:220px; max-width:100%; box-sizing:border-box; }
+.col-w-70  { width:70px;  max-width:100%; box-sizing:border-box; }
+.col-w-160 { width:160px; max-width:100%; box-sizing:border-box; }
+
+/* Make the fixed-width columns collapse to full width on small screens */
+@media (max-width: 600px) {
+    /* Collapse fixed columns to a responsive grid that fits multiple small fields
+       without forcing each to full width so address inputs won't stack unnecessarily */
+    .col-w-140, .col-w-100, .col-w-220, .col-w-70, .col-w-160 { width: auto !important; }
+    .cadastro-img { display: none; }
+    .flex-cadastro { display: block; padding: 8px 12px; }
+    .container-cadastro { padding: 0 10px; }
+    .form-cadastro { max-width: 520px; width: 100%; margin: 0 auto; padding: 6px; }
+    .row-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+    .field-col { margin: 0; }
+    .input-cadastro { height: 40px; padding: 10px; font-size: 13px; }
+    #continuar-cadastro { padding: 10px 18px; }
+}
+
+/* Extra mobile safety: prevent any horizontal scroll by forcing overflow hidden
+   on the body container and ensuring box-sizing covers padding in widths */
+@media (max-width: 600px) {
+    html, body { overflow-x: hidden; }
+    .form-cadastro, .container-cadastro { box-sizing: border-box; }
 }
 
 .cadastro-header {
@@ -191,7 +281,7 @@
 }
 
 .input-cadastro {
-    width: 450px;
+    width: 100%;
     height: 45px;
     padding: 12px 12px;
     border: none;
@@ -216,7 +306,6 @@
 }
 
 .password-input-wrapper {
-    padding-right: 45px; /* espaço para o ícone */
     /* restaurar largura fixa do campo de senha como antes, mas permitir reduzir em telas menores */
         width: 100%;
     max-width: 100%;
@@ -338,11 +427,16 @@
 .link-login i { font-size: 14px; }
 
 /* ===== Responsividade ===== */
-@media (max-width: 425px) {
-    .body-cadastro { background-position: center top; }
+/* Small mobile adjustments */
+@media (max-width: 710px) {
+    .body-cadastro { background-position: center -200px; }
+    .form-cadastro { padding-top: 80px; }
+    #title-cadastro { font-size: 30px; }
 }
 
-@media (max-width: 1024px) {
+/* Narrow screens and tablets - keep image visible until <=768px */
+@media (max-width: 768px) {
+    /* below this width we hide the image and shrink form */
     .cadastro-img { display: none; }
     #title-cadastro { font-size: 34px; }
     .cadastro-subtitle { font-size: 15px; text-align: center; }

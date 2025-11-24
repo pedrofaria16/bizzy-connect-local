@@ -11,6 +11,19 @@
     margin: 0px 850px;
 }
 
+/* Back button for SobreNos header */
+.sobrenos-header { padding: 18px 5vw; }
+.sobrenos-back-btn {
+    background: none;
+    border: none;
+    color: #FF8800;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 6px 8px;
+}
+.sobrenos-back-btn:hover { opacity: 0.9; }
+
 .sobrenos-missao,
 .sobrenos-historia {
     display: grid;

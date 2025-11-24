@@ -70,7 +70,19 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 0;
+  padding: 12px 0;
+}
+
+/* ensure nav centers in the header area on desktop */
+header .header-content nav {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+}
+
+/* slightly larger gap for desktop nav */
+@media (min-width: 769px) {
+  nav ul { gap: 36px; }
 }
 
 .logo {
@@ -79,7 +91,7 @@ header {
 }
 
 .logo img {
-  height: 35px;
+  height: 50px;
 }
 
 .logo h1 {
@@ -89,23 +101,42 @@ header {
   color: var(--primary);
 }
 
+/* default: hide hamburger until mobile breakpoint */
+.hamburger {
+  display: none;
+}
+
+/* mobile menu hidden by default globally to avoid desktop conflicts */
+.mobile-menu {
+  display: none;
+}
+
+/* when mobile menu open, prevent body from scrolling */
+body.menu-open {
+  overflow: hidden;
+}
+
 nav ul {
   display: flex;
   list-style: none;
-  width: 100%;
-  font-size: larger;
-  margin-top: 13px;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  font-size: 18px;
 }
 
 nav ul li {
-  margin-left: 25px;
+  margin: 0;
 }
 
 nav ul li a {
   text-decoration: none;
-  font-weight: 500;
-  font-size: 20px;
-  transition: color 0.3s;
+  font-weight: 600;
+  font-size: 18px;
+  transition: color 0.2s ease;
+  line-height: 1;
+  display: inline-block;
+  padding: 6px 0;
 }
 
 /* Links brancos no estado transparente */
@@ -173,7 +204,7 @@ nav ul li a {
       while still covering the full viewport. Adjust the percentage to move more/less. */
     background-position: center 25%;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-start; /* left-aligned content */
   padding: 0; /* layout managed by inner .hero-content */
   overflow: hidden;
@@ -335,7 +366,7 @@ nav ul li a {
 
 .step-number {
   background-color: var(--primary);
-  color: var(--white);
+  color: var(--black);
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -420,7 +451,7 @@ nav ul li a {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: var(--black);
   font-weight: bold;
 }
 
@@ -466,9 +497,10 @@ footer {
 .footer-content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0px;
-  margin-bottom: 40px;
-  margin-left: 171px;
+  gap: 24px;
+  margin: 0 auto 40px;
+  max-width: 1200px;
+  padding: 0 20px;
 }
 
 .footer-column h3 {
@@ -513,26 +545,169 @@ footer {
 .copyright {
   text-align: center;
   padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  max-width: 190px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  width: 100%;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+  /* keep header inline on mobile: logo left, hamburger right */
   .header-content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+  }
+  
+  /* hide the full nav and CTA on small screens in favor of a hamburger menu */
+  nav ul {
+    display: none;
+  }
+
+  .header-content .btn {
+    display: none;
+  }
+
+  /* hamburger visible on small screens */
+  .hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* mobile menu overlay that stacks the original header content */
+  .mobile-menu {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1500;
+  }
+
+  .mobile-menu .menu-panel {
+    background: #fff;
+    width: 90%;
+    max-width: 420px;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
     flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.18);
+  }
+
+  .mobile-menu.open { display: flex; }
+
+  .mobile-menu .menu-panel nav ul {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .mobile-menu .menu-panel .btn { 
+    display: block; 
+    background-color: var(--black);
+    color: var(--white);
+    padding: 10px 20px;
+    border-radius: 30px;
+    text-align: center;
+    margin: 8px auto 0;
+  }
+
+  .mobile-menu .menu-panel img { margin: 0 auto; }
+
+  /* Ensure mobile menu links are full-width and text-centered */
+  .mobile-menu .menu-panel nav ul li a {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 12px 8px;
+    color: var(--dark-gray);
+  }
+
+  /* Footer adjustments on small screens: center content */
+  .footer-container,
+  .footer-content {
+    padding: 0 16px;
+  }
+
+  .footer .footer-col {
     text-align: center;
   }
-  
-  nav ul {
-    margin-top: 15px;
-    flex-wrap: wrap;
-    justify-content: center;
+
+  .footer img { margin: 0 auto; }
+  /* center orange separator lines and logo inside footer columns on small screens */
+  .footer .footer-col {
+    position: relative;
+    padding-top: 6px;
   }
-  
-  nav ul li {
-    margin: 5px 10px;
+
+  /* Add a centered small orange rule above content if not present, and ensure existing inline lines center */
+  .footer .footer-col::before {
+    content: "";
+    display: block;
+    width: 72px;
+    height: 2px;
+    background: var(--primary);
+    margin: 8px auto 12px;
   }
+
+  .footer .footer-col a, .footer .footer-col p { display: block; margin: 6px auto; }
+
+  /* If there is an existing h1::after used for the orange rule, override and center it on mobile */
+  .footer .footer-col h1::after,
+  .footer h1::after,
+  .footer-column h1::after {
+    content: "" !important;
+    display: block !important;
+    width: 72px !important;
+    height: 1px !important;
+    background: var(--primary) !important;
+    margin: 8px auto 12px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    position: relative !important;
+  }
+
+/* Strong override: ensure footer orange rule is centered across all viewports
+   Some existing styles positioned the pseudo-element absolutely to the left;
+   force it to render as a centered block under the heading. */
+.footer .footer-col h1,
+.footer h1,
+.footer-column h1 {
+  position: relative;
+}
+
+.footer .footer-col,
+.footer,
+.footer-column {
+  overflow: visible;
+}
+
+.footer .footer-col h1::after,
+.footer h1::after,
+.footer-column h1::after {
+  content: "" !important;
+  display: block !important;
+  width: 72px !important;
+  height: 2px !important;
+  background: #ff8800 !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: calc(100% + -4px) !important;
+  transform: translateX(-50%) !important;
+    z-index: 3 !important;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.12) inset, 0 2px 6px rgba(0,0,0,0.12);
+}
   
   .hero h2 {
     font-size: 2rem;

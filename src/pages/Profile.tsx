@@ -152,6 +152,27 @@ const Profile = () => {
     return parts[parts.length - 1] || 'Cidade não informada';
   };
 
+  // Extract only neighborhood and city (e.g. "Bairro • Cidade").
+  // Returns empty string if nothing available.
+  const extractNeighborhoodCity = (endereco?: string, cidade?: string) => {
+    if (!endereco && !cidade) return '';
+    if (endereco) {
+      const parts = endereco.split(',').map((s:string) => s.trim()).filter(Boolean);
+      // If address has at least 3 parts (street, bairro, cidade, estado), take bairro and cidade
+      if (parts.length >= 3) {
+        const bairro = parts[parts.length - 3];
+        const cidadeVal = parts[parts.length - 2] || cidade;
+        if (bairro && cidadeVal) return `${bairro}, ${cidadeVal}`;
+        if (cidadeVal) return cidadeVal;
+      }
+      // If fewer parts, try to return city param or last part
+      if (cidade) return cidade;
+      const last = parts[parts.length - 1];
+      return last || '';
+    }
+    return cidade || '';
+  };
+
   // Helper: calculate age in years from a nascimento string (supports ISO or dd/mm/yyyy)
   const calculateAge = (nascimento?: string | null) => {
     if (!nascimento) return null;
@@ -274,17 +295,24 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background profile-page">
       <header className="sticky top-0 z-50 border-b border-border bg-card">
         <div className="container mx-auto flex h-16 items-center gap-4 px-4">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/feed")}
-            className="hover:bg-secondary"
+            onClick={() => navigate(-1)}
+            className="hover:bg-secondary profile-icon-back"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
+          <button
+            className="sobrenos-back-btn profile-back-btn"
+            onClick={() => navigate(-1)}
+            aria-label="Voltar"
+          >
+            ← Voltar
+          </button>
           <h1 className="text-xl font-bold text-foreground">Perfil</h1>
         </div>
       </header>
@@ -308,7 +336,7 @@ const Profile = () => {
             </div>
 
             <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 profile-header">
                 <div>
                   <h2 className="text-2xl font-bold text-foreground mb-2">{profileToShow?.name ?? 'Usuário'}</h2>
                   <div className="flex items-center gap-2 mb-2">
@@ -318,7 +346,7 @@ const Profile = () => {
                   </div>
                 </div>
                 {isOwnProfile && (
-                  <div className="flex items-center gap-2">
+                  <div className="profile-actions flex items-center gap-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button aria-label="Mais opções" className="p-2 rounded-md hover:bg-secondary">
@@ -338,7 +366,7 @@ const Profile = () => {
               <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  <span>{isOwnProfile ? (profileToShow?.endereco ?? 'Endereço não informado') : extractCity(profileToShow?.endereco, profileToShow?.cidade)}</span>
+                  <span>{(extractNeighborhoodCity(profileToShow?.endereco, profileToShow?.cidade) || (isOwnProfile ? (profileToShow?.endereco ?? 'Endereço não informado') : extractCity(profileToShow?.endereco, profileToShow?.cidade)))}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <User className="h-4 w-4" />
@@ -382,12 +410,12 @@ const Profile = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-semibold text-foreground mb-1">{post.titulo}</h4>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 post-meta">
                             <Badge variant="outline" className="text-xs border-primary/30">{post.categoria}</Badge>
                             <span className="text-xs text-muted-foreground">{post.data ? new Date(post.data).toLocaleDateString() : ''}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 profile-card-actions">
                           <Button variant="outline" onClick={() => navigate(`/post/${post.id}`)}>Ver</Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -441,18 +469,18 @@ const Profile = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <h4 className="font-semibold text-foreground mb-1">{s.titulo}</h4>
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-2 post-meta">
                               <Badge variant="outline" className="text-xs border-primary/30">Serviço</Badge>
                               <span className="text-xs text-muted-foreground">Valor: R$ {s.valor ?? '—'}</span>
                             </div>
                             {s.endereco && (
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <MapPin className="h-3 w-3" />
-                                <span className="truncate">{s.endereco}</span>
+                                <span className="truncate">{extractNeighborhoodCity(s.endereco, s.cidade)}</span>
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 profile-card-actions">
                             <Button 
                               variant="outline" 
                               size="sm"
@@ -518,18 +546,18 @@ const Profile = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <h4 className="font-semibold text-foreground mb-1">{s.titulo}</h4>
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-2 post-meta">
                               <Badge variant="outline" className="text-xs border-primary/30">Serviço</Badge>
                               <span className="text-xs text-muted-foreground">Valor: R$ {s.valor ?? '—'}</span>
                             </div>
                             {s.endereco && (
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                 <MapPin className="h-3 w-3" />
-                                <span className="truncate">{s.endereco}</span>
+                                <span className="truncate">{extractNeighborhoodCity(s.endereco, s.cidade)}</span>
                               </div>
                             )}
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 profile-card-actions">
                             <Button 
                               variant="outline" 
                               size="sm"

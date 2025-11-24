@@ -42,6 +42,9 @@ const SobreNos: React.FC = () => {
  
 return (
   <div className="sobrenos-main">
+    <header className="sobrenos-header">
+      <button className="sobrenos-back-btn" onClick={() => navigate(-1)} aria-label="Voltar">← Voltar</button>
+    </header>
      {/* <header className="header-homepage "> 
       
       <div className="logo-header" style={{cursor : "pointer"}} onClick={() => navigate("/Feed")}>

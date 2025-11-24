@@ -26,6 +26,12 @@ function App() {
 function Header() {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  useEffect(() => {
+    if (mobileOpen) document.body.classList.add('menu-open');
+    else document.body.classList.remove('menu-open');
+    return () => { document.body.classList.remove('menu-open'); };
+  }, [mobileOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -42,23 +48,52 @@ function Header() {
   }, []);
 
   return (
-    <header className={`dynamic-header ${isScrolled ? 'scrolled' : ''}`}>
-      <div className="container">
-        <div className="header-content">
-          <div className="logo">
-            <img className="logo" src="src/assets/img/logo-laranja.svg" alt="Logo Bizzy" onClick={() => navigate("/feed")} />
+    <>
+      <header className={`dynamic-header ${isScrolled ? 'scrolled' : ''}`}>
+        <div className="container">
+          <div className="header-content">
+            <div className="logo">
+              <img className="logo" src="src/assets/img/logo-laranja.svg" alt="Logo Bizzy" onClick={() => navigate("/feed")} />
+            </div>
+            <nav>
+              <ul>
+                <li><a href="#como-funciona">Como Funciona</a></li>
+                <li><a href="#servicos">Serviços</a></li>
+                <li><a href="#depoimentos">Depoimentos</a></li>
+              </ul>
+            </nav>
+            <Link to="/cadastro" className="btn">Começar Agora</Link>
+
+            {/* Hamburger for mobile */}
+            <button className="hamburger" aria-label="Abrir menu" onClick={() => setMobileOpen(true)}>
+              <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <rect y="1" width="22" height="2" rx="1" fill="#000" />
+                <rect y="7" width="22" height="2" rx="1" fill="#000" />
+                <rect y="13" width="22" height="2" rx="1" fill="#000" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile menu overlay moved outside header to avoid clipping when header has backdrop-filter */}
+      <div className={`mobile-menu ${mobileOpen ? 'open' : ''}`} onClick={() => setMobileOpen(false)}>
+        <div className="menu-panel" onClick={(e) => e.stopPropagation()}>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+            <img src="src/assets/img/logo-laranja.svg" alt="Logo" style={{height: 44}} onClick={() => { setMobileOpen(false); navigate('/feed'); }} />
+            <button aria-label="Fechar menu" onClick={() => setMobileOpen(false)} style={{background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer'}}>×</button>
           </div>
           <nav>
             <ul>
-              <li><a href="#como-funciona">Como Funciona</a></li>
-              <li><a href="#servicos">Serviços</a></li>
-              <li><a href="#depoimentos">Depoimentos</a></li>
+              <li><a href="#como-funciona" onClick={() => setMobileOpen(false)}>Como Funciona</a></li>
+              <li><a href="#servicos" onClick={() => setMobileOpen(false)}>Serviços</a></li>
+              <li><a href="#depoimentos" onClick={() => setMobileOpen(false)}>Depoimentos</a></li>
             </ul>
           </nav>
-          <Link to="/cadastro" className="btn">Começar Agora</Link>
+          <Link to="/cadastro" className="btn" onClick={() => setMobileOpen(false)}>Começar Agora</Link>
         </div>
       </div>
-    </header>
+    </>
   );
 }
 

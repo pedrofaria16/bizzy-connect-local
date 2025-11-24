@@ -110,7 +110,6 @@ const Header = () => {
             // Quando não há usuário logado, mostrar apenas o botão Entrar no lugar do perfil
             <>
               <Button onClick={() => navigate('/login')} id="continuar-login">
-                <i className='bx bx-log-in'></i>
                 Entrar
               </Button>
             </>

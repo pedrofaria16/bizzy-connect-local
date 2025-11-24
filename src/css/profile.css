@@ -50,3 +50,216 @@
 .card-avatar-wrapper .avatar, .card-avatar-wrapper .rounded-full {
 	display: inline-flex;
 }
+
+/* Make card flex rows wrap on small screens so buttons/content don't overflow
+	 and ensure flex-1 children can shrink (min-width: 0) so text truncation works. */
+.card > div.flex {
+		/* fallback for non-profile pages */
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		align-items: center;
+}
+
+/* For profile cards, prefer a grid layout (left content flexible, actions auto)
+	 This prevents long location text from pushing the actions out of the card. */
+.profile-page .card > .flex {
+	display: grid;
+	grid-template-columns: 1fr auto;
+	gap: 0.75rem;
+	align-items: center;
+}
+
+.card .flex-1 {
+	min-width: 0; /* allow children to shrink and avoid overflow */
+}
+
+/* Small tweak: ensure 'Ver Detalhes' / action buttons don't shrink and remain readable */
+.card .flex > .flex.items-center, .card .flex > .flex.items-center * {
+	flex-shrink: 0;
+}
+
+/* Responsive behaviour: on narrow screens, force the action column to move under the content
+	 and make buttons occupy their own line so they don't overflow the card. */
+@media (max-width: 900px) {
+	.card > .flex.items-center.justify-between,
+	.card > div.flex.items-center.justify-between {
+		align-items: flex-start;
+	}
+
+	.card > .flex.items-center.justify-between > .flex-1,
+	.card > div.flex.items-center.justify-between > .flex-1 {
+		/* keep content full-width but allow it to wrap inside */
+		flex: 1 1 100%;
+		min-width: 0;
+	}
+
+	.card > .flex.items-center.justify-between > .flex.items-center,
+	.card > div.flex.items-center.justify-between > .flex.items-center {
+		/* action column: place under the main content and let buttons wrap */
+		flex: 1 1 100%;
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	/* make action buttons more robust: don't overflow and get a small min width */
+	.card > .flex.items-center.justify-between > .flex.items-center button,
+	.card > div.flex.items-center.justify-between > .flex.items-center button {
+		min-width: 8rem;
+		white-space: nowrap;
+	}
+}
+
+@media (max-width: 480px) {
+	/* on very small screens force buttons to full width so they don't overflow */
+	.card > .flex.items-center.justify-between > .flex.items-center,
+	.card > div.flex.items-center.justify-between > .flex.items-center {
+		justify-content: stretch;
+	}
+	.card > .flex.items-center.justify-between > .flex.items-center button,
+	.card > div.flex.items-center.justify-between > .flex.items-center button {
+		min-width: 0;
+		width: 100%;
+	}
+}
+
+/* Specific vanilla CSS for profile card action areas (override Tailwind layout) */
+.profile-page .profile-card-actions {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+	flex-wrap: nowrap;
+	/* make actions fixed-size area so long text cannot push them out */
+	flex: 0 0 auto;
+}
+
+/* ensure cards can show overflowing children like dropdowns or buttons when needed */
+.profile-page .card {
+	overflow: visible;
+}
+
+/* ensure action column doesn't get shrunk out of view */
+.profile-page .profile-card-actions {
+	flex-shrink: 0;
+}
+
+/* Position the small header actions (three-dots) on mobile to the right of the name line */
+.profile-header { position: relative; }
+.profile-actions { position: static; }
+
+@media (max-width: 640px) {
+	.profile-header { padding-right: 72px; }
+	.profile-actions { position: absolute; right: 12px; top: 8px; }
+	.profile-actions button { padding: 6px; }
+}
+
+/* Profile page back button styled like SobreNos (politica-de-privacidade) */
+.profile-back-btn {
+		display: none; /* shown only on narrow screens */
+}
+
+/* hide the icon back button and show the text back button on mobile */
+@media (max-width: 640px) {
+	.profile-icon-back { display: none !important; }
+	.profile-back-btn {
+		display: inline-flex !important;
+		background: none;
+		border: none;
+		color: #FF8800;
+		font-weight: 700;
+		font-size: 1rem;
+		cursor: pointer;
+		padding: 6px 8px;
+		align-items: center;
+	}
+	.profile-back-btn:hover { opacity: 0.9; }
+}
+
+/* post meta (badge + date) should stay left, wrap if needed and not push actions */
+.profile-page .post-meta {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+	flex: 1 1 auto; /* allow meta to take available space but be able to shrink */
+	min-width: 0;
+}
+
+.profile-page .post-meta > * {
+	flex-shrink: 1;
+	min-width: 0;
+}
+
+/* Ensure the content column (left) can shrink and its title is truncated instead of pushing actions */
+.profile-page .card > .flex > .flex-1,
+.profile-page .card > .flex > div:first-child {
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+.profile-page .card h4 {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* keep badges compact so they don't push layout excessively */
+.profile-page .post-meta > .badge, .profile-page .post-meta > *[class*="badge"], .profile-page .post-meta > span {
+	max-width: 60%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Limit location/address text inside cards so it doesn't push action buttons out.
+	 We calculate a conservative space (12rem) reserved for actions; on small screens
+	 where actions stack, we allow full width. */
+.profile-page .card .truncate,
+.profile-page .card .post-meta .truncate {
+	display: inline-block;
+	max-width: calc(100% - 12rem);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+	.profile-page .card .truncate,
+	.profile-page .card .post-meta .truncate {
+		max-width: 100%;
+		white-space: normal;
+	}
+}
+
+/* At narrower widths, stack action buttons inside the card and keep them inside the container */
+@media (max-width: 900px) {
+	.profile-page .profile-card-actions {
+		flex-direction: column;
+		align-items: flex-end; /* alinhar ações à direita, deixando espaço entre texto e botões */
+		width: auto;
+		margin-top: 0.5rem;
+	}
+	.profile-page .profile-card-actions > * {
+		/* manter largura automática dos botões, limitar máximo para não ocupar espaço demais */
+		min-width: 8rem;
+		width: auto;
+		max-width: 16rem;
+		box-sizing: border-box;
+		align-self: flex-end;
+	}
+
+	/* permitir que as badges encolham/quebrem em telas menores para não ocupar espaço demais */
+	.profile-page .profile-categories > * {
+		flex-shrink: 1 !important;
+		min-width: 0 !important;
+		max-width: 48%;
+	}
+}
+
+@media (max-width: 480px) {
+	.profile-page .profile-card-actions {
+		gap: 0.5rem;
+	}
+}
