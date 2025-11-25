@@ -162,7 +162,6 @@
 
 /* hide the icon back button and show the text back button on mobile */
 @media (max-width: 640px) {
-	.profile-icon-back { display: none !important; }
 	.profile-back-btn {
 		display: inline-flex !important;
 		background: none;
@@ -176,6 +175,11 @@
 	}
 	.profile-back-btn:hover { opacity: 0.9; }
 }
+
+/* Standardize: only show the icon (black) across pages; hide text back buttons */
+.profile-back-btn { display: none !important; }
+.profile-icon-back { color: #000 !important; }
+.profile-icon-back svg { color: inherit; stroke: currentColor; }
 
 /* post meta (badge + date) should stay left, wrap if needed and not push actions */
 .profile-page .post-meta {

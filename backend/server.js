@@ -11,6 +11,7 @@ const notificationsRoutes = require("./routes/notifications");
 const chatRoutes = require("./routes/chat");
 const reviewsRoutes = require("./routes/reviews");
 const servicosRoutes = require("./routes/servicos");
+const transactionsRoutes = require("./routes/transactions");
 
 dotenv.config();
 
@@ -50,6 +51,7 @@ app.use("/api/notifications", notificationsRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/reviews", reviewsRoutes);
 app.use("/api/servicos", servicosRoutes);
+app.use("/api/transactions", transactionsRoutes);
 
 const PORT = process.env.PORT || 5000;
 
@@ -96,6 +98,23 @@ async function start() {
             }
           }
         }
+      }
+      // Ensure Users table has `balance` column and set default for existing rows
+      try {
+        const usersDesc = await qi.describeTable('Users');
+        if (usersDesc && !usersDesc.balance) {
+          console.log('[migrate] adicionando coluna faltante balance em Users');
+          await qi.addColumn('Users', 'balance', { type: sequelize.Sequelize.DataTypes.FLOAT, allowNull: false, defaultValue: 100 });
+        }
+        // set balance = 100 for any rows with null balance
+        try {
+          const User = require('./models/User');
+          await User.update({ balance: 100 }, { where: { balance: null } }).catch(() => {});
+        } catch (e) {
+          console.warn('Não foi possível atualizar saldos existentes:', e.message || e);
+        }
+      } catch (e) {
+        console.warn('[migrate] falha checando/adicionando coluna balance em Users:', e.message || e);
       }
       // Also ensure the Posts table has the `tipo` column we recently added to the model
       try {

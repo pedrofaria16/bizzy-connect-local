@@ -11,8 +11,7 @@
     margin: 0px 850px;
 }
 
-/* Back button for SobreNos header */
-.sobrenos-header { padding: 18px 5vw; }
+.sobrenos-header { display: flex; align-items: center; gap: 12px; }
 .sobrenos-back-btn {
     background: none;
     border: none;
@@ -23,6 +22,43 @@
     padding: 6px 8px;
 }
 .sobrenos-back-btn:hover { opacity: 0.9; }
+
+/* Adopt profile's back button behavior (icon on desktop, text on mobile) */
+.profile-back-btn { display: none; }
+@media (max-width: 640px) {
+    .profile-back-btn {
+        display: inline-flex !important;
+        background: none;
+        border: none;
+        color: #FF8800;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 6px 8px;
+        align-items: center;
+    }
+    .profile-back-btn:hover { opacity: 0.9; }
+}
+
+/* Title displayed next to back button in header */
+.sobrenos-header-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #000000;
+    margin: 0;
+    flex: 1 1 auto;
+}
+
+/* Standardize: only show icon back button (black) in SobreNos header */
+.sobrenos-back-btn { display: none !important; }
+.profile-back-btn { display: none !important; }
+.profile-icon-back { color: #000 !important; }
+.profile-icon-back svg { color: inherit; stroke: currentColor; }
+
+/* On small screens center the title while keeping the back text/button on the left */
+@media (max-width: 640px) {
+    .sobrenos-header-title { text-align: center; margin-right: 40px; }
+}
 
 .sobrenos-missao,
 .sobrenos-historia {

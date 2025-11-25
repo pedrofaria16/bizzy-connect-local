@@ -30,4 +30,23 @@ router.post('/:id/read', auth, async (req, res) => {
   }
 });
 
+// Marcar todas as notificações de uma conversa como lidas
+router.post('/conversation/:conversationId/mark-read', auth, async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { conversationId } = req.params;
+    if (!conversationId) return res.status(400).json({ error: 'conversationId obrigatório' });
+    // encontrar notificações do tipo 'message' cuja data.conversationId corresponde
+    const notifs = await Notification.findAll({ where: { userId } });
+    const toMark = notifs.filter(n => n.type === 'message' && n.data && String(n.data.conversationId) === String(conversationId) && !n.read);
+    for (const n of toMark) {
+      n.read = true;
+      await n.save();
+    }
+    res.json({ ok: true, marked: toMark.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

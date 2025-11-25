@@ -35,6 +35,24 @@
     text-decoration: underline;
 }
 
+/* Sobrenos-style back button reused on policy/terms pages */
+.sobrenos-back-btn{
+    background: none;
+    border: none;
+    color: #FF8800;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 6px 8px;
+}
+.sobrenos-back-btn:hover { opacity: 0.9; }
+
+/* Standardize: hide text back buttons and make icon black */
+.sobrenos-back-btn { display: none !important; }
+.profile-back-btn { display: none !important; }
+.profile-icon-back { color: #000 !important; }
+.profile-icon-back svg { color: inherit; stroke: currentColor; }
+
 .conteudo-scroll {
     max-height: 100vh; /* Define a altura máxima do conteúdo */
     overflow-y: auto; /* Habilita a rolagem vertical */
@@ -84,4 +102,21 @@ ul {
         width: 60%;
         padding: 60px 0px 20px 0px;
     }
+}
+
+/* Adopt profile's mobile back button behavior */
+.profile-back-btn { display: none; }
+@media (max-width: 640px) {
+    .profile-back-btn {
+        display: inline-flex !important;
+        background: none;
+        border: none;
+        color: #FF8800;
+        font-weight: 700;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 6px 8px;
+        align-items: center;
+    }
+    .profile-back-btn:hover { opacity: 0.9; }
 }

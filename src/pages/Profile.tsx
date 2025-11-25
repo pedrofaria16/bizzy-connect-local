@@ -301,18 +301,12 @@ const Profile = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/feed')}
             className="hover:bg-secondary profile-icon-back"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <button
-            className="sobrenos-back-btn profile-back-btn"
-            onClick={() => navigate(-1)}
-            aria-label="Voltar"
-          >
-            ← Voltar
-          </button>
+          
           <h1 className="text-xl font-bold text-foreground">Perfil</h1>
         </div>
       </header>

@@ -74,6 +74,23 @@ router.post('/', async (req, res) => {
     let lat = null, lon = null;
     // Only require geocoding/CEP when the post is a 'request' (solicitar serviço).
     const isRequest = req.body.type === 'request' || req.body.tipo === 'request';
+
+    // When creating a request post, block creation if the creator has zero or insufficient balance.
+    if (isRequest) {
+      try {
+        const Creator = require('../models/User');
+        const creatorId = req.body.userId;
+        if (!creatorId) return res.status(400).json({ error: 'Usuário não informado' });
+        const creator = await Creator.findByPk(creatorId);
+        if (!creator) return res.status(404).json({ error: 'Usuário não encontrado' });
+        if (Number(creator.balance || 0) <= 0) {
+          return res.status(400).json({ error: 'Saldo insuficiente' });
+        }
+      } catch (e) {
+        console.error('Erro verificando saldo do criador do post:', e);
+        return res.status(500).json({ error: 'Erro ao verificar saldo do usuário' });
+      }
+    }
     if (cep) {
       console.log('[DEBUG] CEP recebido:', cep);
       const coords = await geocodeCep(cep);
@@ -370,6 +387,20 @@ router.post('/:id/contratar', auth, async (req, res) => {
       console.error('[ERROR contratar] invalid contratante/contratado ids', { contratanteId, contratado });
       return res.status(400).json({ error: 'IDs inválidos para contratante ou contratado' });
     }
+    // Verificar saldo do contratante antes de criar o serviço
+    try {
+      const User = require('../models/User');
+      const contratanteUser = await User.findByPk(contratanteId);
+      const valor = Number(post.valor || 0) || 0;
+      if (!contratanteUser) return res.status(404).json({ error: 'Contratante não encontrado' });
+      if (Number(contratanteUser.balance || 0) < valor) {
+        return res.status(400).json({ error: 'Saldo insuficiente' });
+      }
+    } catch (e) {
+      console.error('Erro checando saldo antes de contratar:', e);
+      return res.status(500).json({ error: 'Erro ao verificar saldo' });
+    }
+
     const servico = await Servico.create({
       contratanteId: contratanteId || post.userId,
       contratadoId: contratado,

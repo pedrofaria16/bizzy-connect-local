@@ -1,5 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 import "../css/sobrenos.css";
 import "../css/footer.css"
@@ -42,8 +44,14 @@ const SobreNos: React.FC = () => {
  
 return (
   <div className="sobrenos-main">
-    <header className="sobrenos-header">
-      <button className="sobrenos-back-btn" onClick={() => navigate(-1)} aria-label="Voltar">← Voltar</button>
+    <header className="sticky top-0 z-50 border-b border-border bg-card">
+      <div className="container mx-auto flex h-16 items-center gap-4 px-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/feed')} className="hover:bg-secondary profile-icon-back" aria-label="Voltar">
+          <ArrowLeft />
+        </Button>
+        
+        <h1 className="sobrenos-header-title">Sobre Nós</h1>
+      </div>
     </header>
      {/* <header className="header-homepage "> 
       

@@ -2,6 +2,7 @@ import { MapPin, Star, Clock, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/sonner";
 import { apiFetch, getStoredUserId, apiJson } from '@/lib/api';
 import {
   AlertDialog,
@@ -232,7 +233,7 @@ const PostCard = ({
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
-                                if (inferIsOffer) {
+                                  if (inferIsOffer) {
                                   const idUser = getStoredUserId();
                                   if (!idUser) return alert('Faça login para contratar.');
                                   const res = await apiFetch(`/api/posts/${id}/contratar`, {
@@ -241,8 +242,14 @@ const PostCard = ({
                                     body: JSON.stringify({ contratanteId: Number(idUser) })
                                   });
                                   const payload = await res.json().catch(() => ({}));
-                                  if (!res.ok) return alert(payload.error || payload.message || 'Erro ao contratar');
-                                  alert('Profissional contratado — notificação enviada.');
+                                  if (!res.ok) {
+                                    if (payload && (payload.error || '').toString().toLowerCase().includes('saldo')) {
+                                      toast.error(payload.error || 'Saldo insuficiente');
+                                      return;
+                                    }
+                                    return alert(payload.error || payload.message || 'Erro ao contratar');
+                                  }
+                                  toast.success('Profissional contratado — notificação enviada.');
                                   // refresh feed so the contracted post disappears
                                   try { window.location.reload(); } catch (e) { navigate('/feed'); }
                                 } else {

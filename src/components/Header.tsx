@@ -1,5 +1,5 @@
-import { Search, Bell, MessageCircle, User } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Search, Bell, MessageCircle, User, Wallet } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { apiJson } from '@/lib/api';
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -44,6 +44,20 @@ const Header = () => {
     return () => { mounted = false; };
   }, []);
   const abrirMenu = () => setMenuAberto((prev) => !prev);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // fecha o menu ao clicar fora
+  useEffect(() => {
+    function handleDocClick(e: MouseEvent) {
+      if (!menuAberto) return;
+      if (!menuRef.current) return;
+      const target = e.target as Node | null;
+      if (target && menuRef.current.contains(target)) return;
+      setMenuAberto(false);
+    }
+    document.addEventListener('mousedown', handleDocClick);
+    return () => document.removeEventListener('mousedown', handleDocClick);
+  }, [menuAberto]);
 
   return (
     <header className="fixed top-0 left-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -116,7 +130,7 @@ const Header = () => {
           )}
 
           {/* Menu toggle + menu container (relative) - disponível sempre */}
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <Button
               variant="ghost"
               size="icon"
@@ -133,11 +147,32 @@ const Header = () => {
             </Button>
 
             {/* Menu opções (lado direito) */}
-            <div className={`menu-opcoes${menuAberto ? " ativo" : ""}`}>
+            <div className={`menu-opcoes${menuAberto ? " ativo" : ""}`} role="menu" aria-hidden={!menuAberto}>
               <ul>
-                <a onClick={() => { setMenuAberto(false); navigate("/sobre-nos"); }}><li>Sobre nós</li></a>
-                <a onClick={() => { setMenuAberto(false); navigate("/politica-de-privacidade"); }}><li>Política e Privacidade</li></a>
-                <a onClick={() => { setMenuAberto(false); navigate("/termos-de-uso"); }}><li>Termos de Uso</li></a>
+                <li>
+                  <button className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm" id="carteira" onClick={() => { setMenuAberto(false); navigate("/carteira"); }}>
+                    <span className="w-4 h-4 flex items-center justify-center text-darker-gray"><Wallet className="h-4 w-4" /></span>
+                    <span className="flex-1">Carteira</span>
+                  </button>
+                </li>
+                <li>
+                  <button className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm" onClick={() => { setMenuAberto(false); navigate("/sobre-nos"); }}>
+                    <span className="w-4 h-4" />
+                    <span className="flex-1">Sobre nós</span>
+                  </button>
+                </li>
+                <li>
+                  <button className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm" onClick={() => { setMenuAberto(false); navigate("/politica-de-privacidade"); }}>
+                    <span className="w-4 h-4" />
+                    <span className="flex-1">Política e Privacidade</span>
+                  </button>
+                </li>
+                <li>
+                  <button className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm" onClick={() => { setMenuAberto(false); navigate("/termos-de-uso"); }}>
+                    <span className="w-4 h-4" />
+                    <span className="flex-1">Termos de Uso</span>
+                  </button>
+                </li>
               </ul>
             </div>
           </div>

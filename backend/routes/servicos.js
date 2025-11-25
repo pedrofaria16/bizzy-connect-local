@@ -2,9 +2,12 @@ const express = require('express');
 const Servico = require('../models/Servico');
 const Notification = require('../models/Notification');
 const Review = require('../models/Review');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
+
+const sequelize = require('../config/db');
 
 // Listar serviços do usuário autenticado (contratado ou contratante)
 router.get('/', auth, async (req, res) => {
@@ -47,11 +50,74 @@ router.post('/:id/feito', auth, async (req, res) => {
       return res.status(403).json({ error: 'Somente participantes do serviço podem confirmar' });
     }
 
-    // Se ambas confirmaram, marcar status como 'feito' (apenas uma vez)
+    // Se ambas confirmaram, tentar marcar status como 'feito' (apenas uma vez)
     let finishedNow = false;
     if (serv.contratadoConfirmou && serv.contratanteConfirmou && serv.status !== 'feito') {
-      serv.status = 'feito';
-      finishedNow = true;
+      // Antes de finalizar, checar saldo do contratante e efetuar transferência dentro de uma transação
+      try {
+        const valor = Number(serv.valor || 0) || 0;
+        await sequelize.transaction(async (t) => {
+          // carregar usuários dentro da transação
+          const contratante = await User.findByPk(serv.contratanteId, { transaction: t });
+          const contratado = await User.findByPk(serv.contratadoId, { transaction: t });
+          if (!contratante || !contratado) {
+            throw new Error('Usuário envolvido no serviço não encontrado');
+          }
+          if (Number(contratante.balance || 0) < valor) {
+            // provocar rollback lançando erro reconhecível
+            const err = new Error('Saldo insuficiente');
+            err.name = 'SaldoInsuficiente';
+            throw err;
+          }
+
+          // efetuar transferência: debitar contratante, creditar contratado
+          contratante.balance = Number(contratante.balance || 0) - valor;
+          contratado.balance = Number(contratado.balance || 0) + valor;
+
+          // Garantir que o saldo não fique negativo (checagem de segurança)
+          if (contratante.balance < 0) {
+            const err = new Error('Saldo insuficiente');
+            err.name = 'SaldoInsuficiente';
+            throw err;
+          }
+
+          // salvar usuários e marcar serviço como finalizado dentro da transação
+          await contratante.save({ transaction: t });
+          await contratado.save({ transaction: t });
+          serv.status = 'feito';
+          // salvar serviço dentro da transação
+          await serv.save({ transaction: t });
+
+          // registrar transações relacionadas ao serviço
+          try {
+            const Transaction = require('../models/Transaction');
+            await Transaction.create({ userId: contratante.id, type: 'debit', valor: valor, titulo: `Pagamento serviço #${serv.id}`, servicoId: serv.id }, { transaction: t });
+            await Transaction.create({ userId: contratado.id, type: 'credit', valor: valor, titulo: `Recebimento serviço #${serv.id}`, servicoId: serv.id }, { transaction: t });
+
+            // Recompute balances from transactions to keep canonical source-of-truth
+            const contratanteCredits = await Transaction.sum('valor', { where: { userId: contratante.id, type: 'credit' }, transaction: t }) || 0;
+            const contratanteDebits = await Transaction.sum('valor', { where: { userId: contratante.id, type: 'debit' }, transaction: t }) || 0;
+            contratante.balance = Number(contratanteCredits) - Number(contratanteDebits);
+            await contratante.save({ transaction: t });
+
+            const contratadoCredits = await Transaction.sum('valor', { where: { userId: contratado.id, type: 'credit' }, transaction: t }) || 0;
+            const contratadoDebits = await Transaction.sum('valor', { where: { userId: contratado.id, type: 'debit' }, transaction: t }) || 0;
+            contratado.balance = Number(contratadoCredits) - Number(contratadoDebits);
+            await contratado.save({ transaction: t });
+          } catch (e) {
+            console.error('Não foi possível criar transações para o serviço ou recomputar saldos:', e);
+            throw e;
+          }
+
+          finishedNow = true;
+        });
+      } catch (e) {
+        if (e && e.name === 'SaldoInsuficiente') {
+          return res.status(400).json({ error: 'Saldo insuficiente' });
+        }
+        console.error('Erro ao processar finalização do serviço (transferência):', e);
+        return res.status(500).json({ error: 'Erro ao processar pagamento' });
+      }
     }
 
     if (changed || finishedNow) await serv.save();

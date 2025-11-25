@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { apiJson, apiFetch, getStoredUserId } from '@/lib/api';
 import { ArrowLeft, MapPin, Star, Clock, DollarSign, MessageCircle, Briefcase, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/sonner";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -242,8 +243,14 @@ const PostDetails = () => {
                                   body: JSON.stringify({ contratanteId: Number(userId) })
                                 });
                                 const payload = await res.json().catch(() => ({}));
-                                if (!res.ok) return alert(payload.error || payload.message || 'Erro ao contratar');
-                                alert('Profissional contratado — notificação enviada.');
+                                if (!res.ok) {
+                                  if (payload && (payload.error || '').toString().toLowerCase().includes('saldo')) {
+                                    toast.error(payload.error || 'Saldo insuficiente');
+                                    return;
+                                  }
+                                  return alert(payload.error || payload.message || 'Erro ao contratar');
+                                }
+                                toast.success('Profissional contratado — notificação enviada.');
                                 // recarregar feed/página para atualizar listagem
                                 try { window.location.reload(); } catch (e) { navigate('/feed'); }
                               } else {

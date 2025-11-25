@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import CreatePost from "./pages/CreatePost";
 import Profile from "./pages/Profile";
+import Carteira from "./pages/Carteira";
 import EditProfile from "./pages/EditProfile";
 import PostDetails from "./pages/PostDetails";
 import Chat from "./pages/Chat";
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/carteira" element={<Carteira />} />
           <Route path="/sobre-nos" element={<SobreNos />} />
           <Route path="/politica-de-privacidade" element={<PoliticaDePrivacidade />} />
           <Route path="/termos-de-uso" element={<TermosDeUso />} />

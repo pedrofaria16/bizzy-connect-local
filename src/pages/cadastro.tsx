@@ -25,6 +25,7 @@ function formatarData(valor: string) {
   return valor;
 }
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import "../css/cadastro.css";
 
 const Cadastro: React.FC = () => {
@@ -40,6 +41,38 @@ const Cadastro: React.FC = () => {
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
   const [cep, setCep] = useState("");
+
+  // Busca CEP via ViaCEP e preenche rua/bairro/cidade/estado
+  const buscarCep = async (rawCep: string) => {
+    const digits = (rawCep || "").replace(/\D/g, "");
+    if (digits.length !== 8) {
+      toast.error('CEP inválido — informe 8 dígitos.');
+      return;
+    }
+    try {
+      const resp = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      if (!resp.ok) {
+        toast.error('Erro ao consultar CEP.');
+        return;
+      }
+      const data = await resp.json();
+      if (data.erro) {
+        toast.error('CEP não encontrado.');
+        return;
+      }
+      // Preenche campos com os valores retornados
+      if (data.logradouro) setRua(data.logradouro);
+      if (data.bairro) setBairro(data.bairro);
+      if (data.localidade) setCidade(data.localidade);
+      if (data.uf) setEstado(data.uf);
+      // Formata o CEP para 00000-000
+      setCep(digits.replace(/(\d{5})(\d{3})/, "$1-$2"));
+      toast.success('Endereço preenchido a partir do CEP.');
+    } catch (e) {
+      console.error('Erro buscar CEP', e);
+      toast.error('Erro ao consultar CEP.');
+    }
+  };
   // Serviços múltiplos
   const servicosOpcoes = [
     "Elétrica", "Pintura", "Jardinagem", "Limpeza", "Aulas", "Transporte", "Tecnologia", "Eventos", "Montagem", "Reformas"
@@ -234,7 +267,14 @@ const Cadastro: React.FC = () => {
                 <div className="row-fields">
                   <div className="field-col col-w-140">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>CEP</label>
-                    <input placeholder="CEP" type="text" className="input-cadastro" value={cep} onChange={e => setCep(e.target.value)} />
+                    <input
+                      placeholder="CEP"
+                      type="text"
+                      className="input-cadastro"
+                      value={cep}
+                      onChange={e => setCep(e.target.value)}
+                      onBlur={() => buscarCep(cep)}
+                    />
                   </div>
                   <div className="field-col col-w-140">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>Estado</label>

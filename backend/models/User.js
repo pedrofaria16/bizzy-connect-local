@@ -13,6 +13,7 @@ const User = sequelize.define("User", {
   nascimento: { type: DataTypes.STRING },
   foto: { type: DataTypes.STRING },
   description: { type: DataTypes.TEXT, allowNull: true },
+  balance: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 100 },
   sexo: { type: DataTypes.STRING, allowNull: true},
 });
 

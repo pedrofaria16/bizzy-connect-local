@@ -58,6 +58,18 @@ const Chat = () => {
     })();
   }, [toUserId, conversationId]);
 
+  // mark message notifications for this conversation as read when opening
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!conversationId) return;
+        await apiJson(`/api/notifications/conversation/${conversationId}/mark-read`, { method: 'POST' });
+      } catch (e) {
+        console.warn('Não foi possível marcar notificações como lidas para a conversa', e);
+      }
+    })();
+  }, [conversationId]);
+
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
@@ -95,7 +107,7 @@ const Chat = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate("/feed")}
+            onClick={() => navigate("/contacts")}
             className="hover:bg-secondary"
           >
             <ArrowLeft className="h-5 w-5" />

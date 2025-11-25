@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from 'lucide-react';
 import '../css/politica-de-privacidade.css';
 
 const TermosDeUso: React.FC = () => {
@@ -9,7 +11,9 @@ const TermosDeUso: React.FC = () => {
   return (
     <div>
       <div className="titulo">
-      <a className="back-link" onClick={() => navigate("/feed")}>Voltar</a>
+        <Button variant="ghost" size="icon" onClick={() => navigate('/feed')} className="profile-icon-back hover:bg-secondary">
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
         <h1>Termos de Uso</h1>
         <div className="nada"></div>
       </div>

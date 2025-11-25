@@ -147,24 +147,36 @@ All colors MUST be HSL.
 /* Menu opções (header) */
 @layer components {
   .menu-opcoes {
-  /* fixed width so the background size is predictable (narrow column)
-     Position to the right of its relative container so it doesn't overflow
-     the viewport when the header is aligned to the right on small screens. */
-  @apply absolute right-0 top-full mt-2 w-48 bg-card rounded-md shadow-md border border-border transform origin-top-right scale-95 opacity-0 pointer-events-none;
+  /* size to content so the container matches the inner ul width */
+  @apply absolute right-0 top-full mt-2 w-max bg-card rounded-md shadow-md border border-border transform origin-top-right scale-95 opacity-0 pointer-events-none;
     z-index: 60;
     transition: var(--transition-smooth);
   }
 
-  .menu-opcoes ul {
-    @apply flex flex-col items-start m-0 p-0 list-none;
+    .menu-opcoes ul {
+      @apply flex flex-col items-stretch gap-0 my-0 px-0 list-none;
+      width: 100%;
   }
 
+  button#carteira {
+    display: flex;
+    flex-direction: row-reverse;
+  }
   .menu-opcoes ul li {
-    @apply m-0 p-0 w-full;
+    @apply m-0 p-0 w-full border-b;
+    /* make the divider lighter by using the --border HSL variable with reduced alpha */
+    border-bottom-color: hsl(var(--border) / 0.35);
+    margin-top: 2px;
+    margin-bottom: 2px;
   }
 
-  .menu-opcoes ul a {
-    @apply inline-block w-full text-foreground px-3 py-2 text-base text-left rounded hover:bg-secondary/60 cursor-pointer; /* compact padding, site default font size */
+  .menu-opcoes ul li:last-child {
+    @apply border-b-0;
+  }
+
+  .menu-opcoes ul li button {
+    /* make each button behave like a full-line block so hover fills the whole row */
+    @apply block w-full text-foreground text-left rounded-none hover:bg-secondary/60 cursor-pointer;
   }
 
   .menu-opcoes.ativo {
