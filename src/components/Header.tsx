@@ -46,7 +46,7 @@ const Header = () => {
   const abrirMenu = () => setMenuAberto((prev) => !prev);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
+    <header className="fixed top-0 left-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-6">
           <button onClick={() => navigate("/feed")} aria-label="Home" className="p-0 m-0">
@@ -86,7 +86,7 @@ const Header = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="hover:bg-secondary"
+            className="relative hover:bg-secondary"
              onClick={() => navigate("/contacts")}
           >
             <MessageCircle className="h-5 w-5 text-darker-gray" />

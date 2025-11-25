@@ -41,7 +41,7 @@ const FilterBar = ({ selectedCategories = [], onCategoriesChange, priceSort = nu
   }
 
   return (
-    <div className="sticky top-16 z-40 bg-card border-b border-border py-3">
+    <div className="fixed top-16 left-0 z-40 w-full bg-card border-b border-border py-3">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-center gap-3 overflow-x-auto pb-2">
           <Button variant="outline" size="sm" className="gap-2 shrink-0 border-border hover:bg-transparent hover:text-inherit">

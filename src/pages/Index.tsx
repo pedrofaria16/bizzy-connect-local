@@ -281,7 +281,7 @@ const Index = () => {
   })();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-28">
       <Header />
       <FilterBar
         selectedCategories={selectedCategories}
@@ -290,7 +290,7 @@ const Index = () => {
         onPriceSortChange={(p) => setPriceSort(p)}
       />
       
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 mt-8">
         <div className="max-w-4xl mx-auto space-y-4">
           {renderedPosts}
         </div>
