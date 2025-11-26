@@ -28,9 +28,22 @@ const FilterBar = ({ selectedCategories = [], onCategoriesChange, priceSort = nu
   const [localCats, setLocalCats] = useState<string[]>(selectedCategories);
 
   function toggleCategory(cat: string) {
+    // If user clicked "Todos", select only it and deselect others
+    if (cat === "Todos") {
+      const next = ["Todos"];
+      setLocalCats(next);
+      onCategoriesChange?.(next);
+      return;
+    }
+
+    // Clicking any other category should deselect "Todos" if present
     let next: string[];
-    if (localCats.includes(cat)) next = localCats.filter(c => c !== cat);
-    else next = [...localCats, cat];
+    if (localCats.includes(cat)) {
+      next = localCats.filter(c => c !== cat && c !== "Todos");
+    } else {
+      next = [...localCats.filter(c => c !== "Todos"), cat];
+    }
+
     setLocalCats(next);
     onCategoriesChange?.(next);
   }

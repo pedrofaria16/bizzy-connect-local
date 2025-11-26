@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { apiJson, apiFetch } from '@/lib/api';
 import { toast } from "sonner";
-import { ArrowLeft, Star, MapPin, User, Briefcase, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Star, MapPin, User, Briefcase, MoreHorizontal, Wallet } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -349,6 +349,10 @@ const Profile = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent side="bottom" className="profile-dropdown">
                         <DropdownMenuItem className="dropdown-item" onSelect={() => navigate('/edit-profile')}>Editar Perfil</DropdownMenuItem>
+                        <DropdownMenuItem className="dropdown-item" onSelect={() => { setEditing(false); setTimeout(()=>navigate('/carteira'), 0); }}>
+                          <span className="flex-1">Carteira</span>
+                          <span className="w-4 h-4 flex items-center justify-center text-darker-gray"><Wallet className="h-4 w-4" /></span>
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="dropdown-item" onSelect={() => { localStorage.removeItem('bizzy_user'); navigate('/feed'); }}>Sair</DropdownMenuItem>
                       </DropdownMenuContent>

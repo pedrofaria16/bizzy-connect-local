@@ -134,6 +134,12 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    overflow-y: scroll;
+  }
+
+  /* Prevent layout shift when scrollbars appear/disappear (keep gutter reserved) */
+  html {
+    scrollbar-gutter: stable;
   }
 
   /* Keep text color unchanged when utilities like `hover:bg-*` are used.

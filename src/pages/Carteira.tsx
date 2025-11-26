@@ -81,7 +81,6 @@ const Carteira = () => {
         // prepend to the transactions list
         setTransactions(prev => [created, ...prev]);
         // also keep a local visual marker
-        setLocalAdjustments(prev => [{ ...created, local: true }, ...prev]);
       } catch (e) {
         console.error('Erro ao criar transação:', e);
       } finally {
@@ -111,7 +110,17 @@ const Carteira = () => {
             <div>
               <div className="text-sm text-muted-foreground">Saldo atual</div>
                 <div className="text-3xl font-bold text-foreground">{formatMoney(displayedBalance)}</div>
-                <div className="text-sm text-muted-foreground">(+{formatMoney(credited)} recebido · -{formatMoney(debited)} gasto)</div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Ações: botão dentro de um retângulo com melhor design */}
+        <Card className="p-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-3">
+            <div className="text-sm text-muted-foreground">Gerenciar saldo</div>
+            <div className="flex w-full sm:w-2/3 md:w-1/2 gap-3 sm:ml-auto">
+              <Button onClick={() => openDialogFor('add')} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 rounded-md py-3 px-6 text-lg">Inserir saldo</Button>
+              <Button onClick={() => openDialogFor('transfer')} className="flex-1 bg-secondary text-darker-gray hover:bg-secondary/90 transition-colors duration-150 rounded-md py-3 px-6 text-lg">Transferir saldo</Button>
             </div>
           </div>
         </Card>
@@ -125,14 +134,6 @@ const Carteira = () => {
               </Button>
             </div>
           </div>
-
-          {/* action buttons shown when transactions are revealed */}
-          {showTransactions && (
-            <div className="mb-4 flex gap-3">
-              <Button onClick={() => openDialogFor('add')} className="bg-success text-white hover:bg-success/90">Inserir saldo</Button>
-              <Button onClick={() => openDialogFor('transfer')} className="bg-destructive text-white hover:bg-destructive/90">Transferir saldo</Button>
-            </div>
-          )}
 
           {loading ? (
             <div className="text-muted-foreground">Carregando...</div>
