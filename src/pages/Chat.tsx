@@ -1,5 +1,6 @@
 import "../css/chat.css";
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { apiJson, apiFetch, getStoredUserId } from '@/lib/api';
 
 const Chat = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -53,10 +55,10 @@ const Chat = () => {
           if (found) setOtherUser(found.otherUser);
         }
       } catch (e) {
-        console.error('Erro ao buscar usuário da conversa', e);
+        console.error(t('Erro ao buscar usuário da conversa'), e);
       }
     })();
-  }, [toUserId, conversationId]);
+  }, [toUserId, conversationId, t]);
 
   // mark message notifications for this conversation as read when opening
   useEffect(() => {
@@ -65,17 +67,17 @@ const Chat = () => {
         if (!conversationId) return;
         await apiJson(`/api/notifications/conversation/${conversationId}/mark-read`, { method: 'POST' });
       } catch (e) {
-        console.warn('Não foi possível marcar notificações como lidas para a conversa', e);
+        console.warn(t('Não foi possível marcar notificações como lidas para a conversa'), e);
       }
     })();
-  }, [conversationId]);
+  }, [conversationId, t]);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
     (async () => {
       try {
-        if (!conversationId || !toUserId) return alert('Conversa inválida');
+        if (!conversationId || !toUserId) return alert(t('Conversa inválida'));
         // debug: what id will be used
         const debugId = getStoredUserId();
         console.debug('[chat] sending message, detected user id =', debugId, 'conversationId=', conversationId, 'toUserId=', toUserId);
@@ -84,9 +86,9 @@ const Chat = () => {
           body: JSON.stringify({ conversationId: Number(conversationId), toUserId: Number(toUserId), text: message })
         });
         console.debug('[chat] send response status:', res.status);
-        if (res.status === 401 || res.status === 403) return alert('Faça login para enviar mensagem');
+        if (res.status === 401 || res.status === 403) return alert(t('Faça login para enviar mensagem'));
         const saved = await res.json();
-        if (!res.ok) throw new Error(saved?.message || saved?.error || 'Erro ao enviar');
+        if (!res.ok) throw new Error(saved?.message || saved?.error || t('Erro ao enviar'));
         const myId = getStoredUserId();
         const normalized = {
           id: saved.id,
@@ -96,7 +98,7 @@ const Chat = () => {
         };
         setMessages(prev => [...prev, normalized]);
         setMessage('');
-      } catch (e) { console.error(e); alert('Erro ao enviar mensagem'); }
+      } catch (e) { console.error(e); alert(t('Erro ao enviar mensagem')); }
     })();
   };
 
@@ -119,11 +121,11 @@ const Chat = () => {
             <Avatar className="h-10 w-10">
               {otherUser && otherUser.foto ? <AvatarImage src={otherUser.foto.startsWith('http') ? otherUser.foto : `${backendBase}${otherUser.foto}`} /> : null}
               <AvatarFallback className="bg-primary text-primary-foreground">
-                {otherUser && otherUser.name ? otherUser.name.split(' ').map((s:string)=>s[0]).slice(0,2).join('').toUpperCase() : 'U'}
+                {otherUser && otherUser.name ? otherUser.name.split(' ').map((s:string)=>s[0]).slice(0,2).join('').toUpperCase() : t('U')}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-semibold text-foreground">{otherUser?.name ?? 'Usuário'}</h2>
+              <h2 className="font-semibold text-foreground">{otherUser?.name ?? t('Usuário')}</h2>
             </div>
           </div>
         </div>
@@ -163,7 +165,7 @@ const Chat = () => {
           className="container mx-auto max-w-4xl flex gap-2"
         >
           <Input
-            placeholder="Digite sua mensagem..."
+            placeholder={t('Digite sua mensagem...')}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             className="flex-1"

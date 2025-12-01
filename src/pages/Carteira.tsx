@@ -1,6 +1,7 @@
 import "../css/profile.css";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { apiJson } from '@/lib/api';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,6 +24,7 @@ const formatMoney = (v: number) => {
 
 const Carteira = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,20 +36,19 @@ const Carteira = () => {
         if (!mounted) return;
         setTransactions(Array.isArray(data) ? data : []);
       } catch (e) {
-        console.error('Erro ao buscar transações da carteira', e);
+        console.error(t('Erro ao buscar transações da carteira'), e);
         setTransactions([]);
       } finally {
         if (mounted) setLoading(false);
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [t]);
 
   const credited = transactions.filter(t => t && t.type === 'credit').reduce((s, it) => s + (Number(it.valor) || 0), 0);
   const debited = transactions.filter(t => t && t.type === 'debit').reduce((s, it) => s + (Number(it.valor) || 0), 0);
   const balance = credited - debited;
 
-  // Local UI state for hidden transactions
   const [showTransactions, setShowTransactions] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMode, setDialogMode] = useState<'add'|'transfer'|'none'>('none');
@@ -76,13 +77,15 @@ const Carteira = () => {
     }
     (async () => {
       try {
-        const payload = { type: dialogMode === 'add' ? 'credit' : 'debit', valor: val, titulo: dialogMode === 'add' ? 'Inserção manual' : 'Transferência manual' };
+        const payload = { 
+          type: dialogMode === 'add' ? 'credit' : 'debit', 
+          valor: val, 
+          titulo: dialogMode === 'add' ? t('Inserção manual') : t('Transferência manual') 
+        };
         const created: any = await apiJson('/api/transactions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        // prepend to the transactions list
         setTransactions(prev => [created, ...prev]);
-        // also keep a local visual marker
       } catch (e) {
-        console.error('Erro ao criar transação:', e);
+        console.error(t('Erro ao criar transação:'), e);
       } finally {
         setDialogOpen(false);
         setDialogMode('none');
@@ -97,7 +100,7 @@ const Carteira = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate('/feed')} className="hover:bg-secondary profile-icon-back">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold text-foreground">Carteira</h1>
+          <h1 className="text-xl font-bold text-foreground">{t('Carteira')}</h1>
         </div>
       </header>
 
@@ -108,48 +111,53 @@ const Carteira = () => {
               <Wallet className="h-6 w-6" />
             </div>
             <div>
-              <div className="text-sm text-muted-foreground">Saldo atual</div>
+              <div className="text-sm text-muted-foreground">{t('Saldo atual')}</div>
                 <div className="text-3xl font-bold text-foreground">{formatMoney(displayedBalance)}</div>
             </div>
           </div>
         </Card>
 
-        {/* Ações: botão dentro de um retângulo com melhor design */}
         <Card className="p-4 mb-6">
           <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-3">
-            <div className="text-sm text-muted-foreground">Gerenciar saldo</div>
+            <div className="text-sm text-muted-foreground">{t('Gerenciar saldo')}</div>
             <div className="flex w-full sm:w-2/3 md:w-1/2 gap-3 sm:ml-auto">
-              <Button onClick={() => openDialogFor('add')} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 rounded-md py-3 px-6 text-lg">Inserir saldo</Button>
-              <Button onClick={() => openDialogFor('transfer')} className="flex-1 bg-secondary text-darker-gray hover:bg-secondary/90 transition-colors duration-150 rounded-md py-3 px-6 text-lg">Transferir saldo</Button>
+              <Button onClick={() => openDialogFor('add')} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 rounded-md py-3 px-6 text-lg">
+                {t('Inserir saldo')}
+              </Button>
+              <Button onClick={() => openDialogFor('transfer')} className="flex-1 bg-secondary text-darker-gray hover:bg-secondary/90 transition-colors duration-150 rounded-md py-3 px-6 text-lg">
+                {t('Transferir saldo')}
+              </Button>
             </div>
           </div>
         </Card>
 
         <Card className="p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Transações</h2>
+            <h2 className="text-lg font-semibold">{t('Transações')}</h2>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => setShowTransactions(s => !s)}>
-                {showTransactions ? 'Ocultar' : 'Ver transações'}
+                {showTransactions ? t('Ocultar') : t('Ver transações')}
               </Button>
             </div>
           </div>
 
           {loading ? (
-            <div className="text-muted-foreground">Carregando...</div>
+            <div className="text-muted-foreground">{t('Carregando...')}</div>
           ) : (
             <div>
               {!showTransactions && (
-                <div className="text-muted-foreground">Transações ocultas. Clique em "Ver transações" para expandir.</div>
+                <div className="text-muted-foreground">{t('Transações ocultas. Clique em "Ver transações" para expandir.')}</div>
               )}
               {showTransactions && (
                 <ul className="space-y-3">
-                  {displayedTransactions.length === 0 && <li className="text-muted-foreground">Nenhuma transação</li>}
+                  {displayedTransactions.length === 0 && <li className="text-muted-foreground">{t('Nenhuma transação')}</li>}
                   {displayedTransactions.map((t:any) => (
                     <li key={t.id || Math.random()} className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium">{t.titulo || `Serviço #${t.id}`}</div>
-                        <div className="text-sm text-muted-foreground">{t.status ? (t.status === 'feito' ? 'Concluído' : t.status) : ''}</div>
+                        <div className="font-medium">{t.titulo || `${t('Serviço')} #${t.id}`}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {t.status ? (t.status === 'feito' ? t('Concluído') : t.status) : ''}
+                        </div>
                       </div>
                       <div className={`font-semibold ${t.type === 'credit' ? 'text-success' : 'text-destructive'}`}>
                         {t.type === 'credit' ? `+ ${formatMoney(Number(t.valor) || 0)}` : `- ${formatMoney(Number(t.valor) || 0)}`}
@@ -161,20 +169,28 @@ const Carteira = () => {
             </div>
           )}
 
-          {/* Dialog for adding/transferring funds (local only) */}
           <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o) { setDialogMode('none'); } setDialogOpen(o); }}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{dialogMode === 'add' ? 'Inserir saldo' : 'Transferir saldo'}</DialogTitle>
-                <DialogDescription>Escolha o valor em reais para {dialogMode === 'add' ? 'adicionar à conta' : 'remover da conta'} (sem API, operação local).</DialogDescription>
+                <DialogTitle>{dialogMode === 'add' ? t('Inserir saldo') : t('Transferir saldo')}</DialogTitle>
+                <DialogDescription>
+                  {dialogMode === 'add' 
+                    ? t('Escolha o valor em reais para adicionar à conta (sem API, operação local).')
+                    : t('Escolha o valor em reais para remover da conta (sem API, operação local).')
+                  }
+                </DialogDescription>
               </DialogHeader>
               <div className="grid gap-2 py-2">
-                <Label>Valor</Label>
-                <Input value={dialogAmount} onChange={(e:any) => setDialogAmount(e.target.value)} placeholder="Ex: 50.00" />
+                <Label>{t('Valor')}</Label>
+                <Input value={dialogAmount} onChange={(e:any) => setDialogAmount(e.target.value)} placeholder={t('Ex: 50.00')} />
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => { setDialogOpen(false); setDialogMode('none'); }}>Cancelar</Button>
-                <Button onClick={confirmDialog}>{dialogMode === 'add' ? 'Inserir' : 'Transferir'}</Button>
+                <Button variant="ghost" onClick={() => { setDialogOpen(false); setDialogMode('none'); }}>
+                  {t('Cancelar')}
+                </Button>
+                <Button onClick={confirmDialog}>
+                  {dialogMode === 'add' ? t('Inserir') : t('Transferir')}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>

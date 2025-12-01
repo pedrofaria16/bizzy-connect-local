@@ -1,8 +1,8 @@
 import { MapPin, Star, Clock, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/sonner";
 import { apiFetch, getStoredUserId, apiJson } from '@/lib/api';
 import {
   AlertDialog,
@@ -18,6 +18,9 @@ import {
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+
+
 
 interface PostCardProps {
   id: number;
@@ -51,10 +54,10 @@ const PostCard = ({
   authorId,
 }: PostCardProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [hasApplied, setHasApplied] = useState(false);
   
   useEffect(() => {
-    // Verificar se o usuário já se candidatou
     const checkIfApplied = async () => {
       try {
         const userId = getStoredUserId();
@@ -63,14 +66,14 @@ const PostCard = ({
         const alreadyApplied = candidaturas.some((c: any) => c.postId === id);
         setHasApplied(alreadyApplied);
       } catch (e) {
-        console.warn('Erro ao verificar candidaturas:', e);
+        console.warn(t('Erro ao verificar candidaturas:'), e);
       }
     };
     checkIfApplied();
-  }, [id]);
-  // Extract only neighborhood (bairro) and city (cidade) from a full address string.
+  }, [id, t]);
+
   const extractNeighborhoodCity = (endereco?: string, cidade?: string) => {
-    if (!endereco && !cidade) return 'Local não informado';
+    if (!endereco && !cidade) return t('Local não informado');
     if (endereco) {
       const parts = endereco.split(',').map(s => s.trim()).filter(Boolean);
       if (parts.length >= 3) {
@@ -79,34 +82,32 @@ const PostCard = ({
         if (bairro && cidadeVal) return `${bairro} • ${cidadeVal}`;
         if (cidadeVal) return cidadeVal;
       }
-      // fallback to cidade param or last segment of endereco
       if (cidade) return cidade;
       const last = parts[parts.length - 1];
-      return last || 'Local não informado';
+      return last || t('Local não informado');
     }
-    return cidade || 'Local não informado';
+    return cidade || t('Local não informado');
   };
-  // Determine offer vs request robustly: prefer explicit prop, otherwise infer from price string.
+
   const inferIsOffer = (() => {
     if (type === 'offer') return true;
     if (type === 'request') return false;
-    if (!price) return true; // no price -> likely offering without price
-    // price may be like 'R$ 120' or '120' or '120,00'
+    if (!price) return true;
     const numeric = Number(String(price).replace(/[^0-9.,-]/g, '').replace(',', '.'));
     if (isNaN(numeric)) return false;
-    return numeric === 0; // zero -> offer, otherwise request
+    return numeric === 0;
   })();
 
-  const badgeLabel = inferIsOffer ? 'Oferece' : 'Solicita';
+  const badgeLabel = inferIsOffer ? t('Oferece') : t('Solicita');
   const badgeClasses = inferIsOffer ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-darker-gray text-primary-foreground';
 
   return (
     <Card 
       className="p-6 hover:shadow-lg transition-all duration-300 border-border bg-card cursor-pointer"
-    onClick={() => navigate(`/post/${id}`)}
+      onClick={() => navigate(`/post/${id}`)}
     >
       <div className="flex items-start gap-4">
-          <Avatar 
+        <Avatar 
           className="h-12 w-12 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
@@ -123,7 +124,7 @@ const PostCard = ({
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-                <h3 
+              <h3 
                 className="font-semibold text-foreground cursor-pointer hover:text-primary"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -138,16 +139,16 @@ const PostCard = ({
                 <span className="font-medium text-darker-gray">{rating.toFixed(1)}</span>
               </div>
             </div>
-              <Badge
-                variant={inferIsOffer ? 'default' : 'outline'}
-                className={badgeClasses}
-              >
-                {badgeLabel}
-              </Badge>
+            <Badge
+              variant={inferIsOffer ? 'default' : 'outline'}
+              className={badgeClasses}
+            >
+              {badgeLabel}
+            </Badge>
           </div>
           
           <Badge variant="outline" className="mb-3 text-xs border-primary/30 text-darker-gray">
-            {category}
+            {t(category)} 
           </Badge>
           
           <h4 className="font-semibold text-lg mb-2 text-foreground">{title}</h4>
@@ -155,7 +156,6 @@ const PostCard = ({
             {description}
           </p>
           
-          {/* For offers: show only price. For requests: show combined row with price + location + time (original layout). */}
           {inferIsOffer ? (
             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
               {price && (
@@ -183,7 +183,6 @@ const PostCard = ({
             </div>
           )}
           
-          {/* If the current user is the author of the post, don't render action buttons */}
           {(() => {
             try {
               const raw = typeof window !== 'undefined' ? (localStorage.getItem('bizzy_user') || localStorage.getItem('user')) : null;
@@ -196,13 +195,14 @@ const PostCard = ({
                       variant="outline" 
                       className="flex-1 border-border hover:bg-secondary"
                       onClick={(e) => { e.stopPropagation(); if (authorId) navigate(`/profile?userId=${authorId}`); else navigate("/profile"); }}
-                    >
-                      Ver Perfil
+                    >    
+                    {/* ESTÁ AQUII */}
+                      {t('Ver Perfil')}
                     </Button>
                   </div>
                 );
               }
-            } catch (e) { /* ignore parse errors and show buttons */ }
+            } catch (e) { }
             return (
               <div className="flex gap-2">
                 <AlertDialog>
@@ -212,66 +212,59 @@ const PostCard = ({
                       onClick={(e) => { e.stopPropagation(); }}
                       disabled={!inferIsOffer && hasApplied}
                     >
-                      {!inferIsOffer && hasApplied ? "Já se candidatou" : inferIsOffer ? "Contratar" : "Candidatar-se"}
+                      {!inferIsOffer && hasApplied ? t('Já se candidatou') : inferIsOffer ? t('Contratar') : t('Candidatar-se')}
                     </Button>
                   </AlertDialogTrigger>
                   {!inferIsOffer && hasApplied ? null : (
                     <AlertDialogContent>
                       <AlertDialogHeader>
                         <AlertDialogTitle>
-                          {inferIsOffer ? 'Confirmar contratação' : 'Confirmar candidatura'}
+                          {inferIsOffer ? t('Confirmar contratação') : t('Confirmar candidatura')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
-                          {inferIsOffer ? 'Tem certeza que deseja contratar este profissional para o serviço?' : 'Tem certeza que deseja se candidatar a este serviço?'}
+                          {inferIsOffer ? t('Tem certeza que deseja contratar este profissional para o serviço?') : t('Tem certeza que deseja se candidatar a este serviço?')}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel>{t('Cancelar')}</AlertDialogCancel>
                         <AlertDialogAction asChild>
                           <Button
                             className="bg-primary"
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
-                                  if (inferIsOffer) {
+                                if (inferIsOffer) {
                                   const idUser = getStoredUserId();
-                                  if (!idUser) return alert('Faça login para contratar.');
+                                  if (!idUser) return alert(t('Faça login para contratar.'));
                                   const res = await apiFetch(`/api/posts/${id}/contratar`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ contratanteId: Number(idUser) })
                                   });
                                   const payload = await res.json().catch(() => ({}));
-                                  if (!res.ok) {
-                                    if (payload && (payload.error || '').toString().toLowerCase().includes('saldo')) {
-                                      toast.error(payload.error || 'Saldo insuficiente');
-                                      return;
-                                    }
-                                    return alert(payload.error || payload.message || 'Erro ao contratar');
-                                  }
-                                  toast.success('Profissional contratado — notificação enviada.');
-                                  // refresh feed so the contracted post disappears
+                                  if (!res.ok) return alert(payload.error || payload.message || t('Erro ao contratar'));
+                                  alert(t('Profissional contratado — notificação enviada.'));
                                   try { window.location.reload(); } catch (e) { navigate('/feed'); }
                                 } else {
                                   const idUser = getStoredUserId();
-                                  if (!idUser) return alert('Faça login para se candidatar.');
+                                  if (!idUser) return alert(t('Faça login para se candidatar.'));
                                   const res = await apiFetch(`/api/posts/${id}/candidatar`, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ userId: Number(idUser) })
                                   });
                                   const payload = await res.json().catch(() => ({}));
-                                  if (!res.ok) return alert(payload.error || payload.message || 'Erro ao candidatar');
-                                  alert('Candidatura enviada. O autor recebeu uma notificação.');
+                                  if (!res.ok) return alert(payload.error || payload.message || t('Erro ao candidatar'));
+                                  alert(t('Candidatura enviada. O autor recebeu uma notificação.'));
                                   setHasApplied(true);
                                 }
                               } catch (err: any) {
                                 console.error(err);
-                                alert(err?.message || 'Erro na ação');
+                                alert(err?.message || t('Erro na ação'));
                               }
                             }}
                           >
-                            Confirmar
+                            {t('Confirmar')}
                           </Button>
                         </AlertDialogAction>
                       </AlertDialogFooter>
@@ -288,7 +281,7 @@ const PostCard = ({
                     else navigate("/profile");
                   }}
                 >
-                  Ver Perfil
+                  {t('Ver Perfil')}
                 </Button>
               </div>
             );

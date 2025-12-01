@@ -1,4 +1,5 @@
 import "../css/notifications.css";
+import { useTranslation } from 'react-i18next'; // ← ADICIONE ESTA LINHA
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from 'react';
 import { apiJson, apiFetch } from '@/lib/api';
@@ -16,6 +17,7 @@ const getStoredUserId = () => {
 };
 
 const Notifications = () => {
+  const { t } = useTranslation(); // ← ADICIONE ESTE HOOK
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<any[]>([]);
 
@@ -24,14 +26,13 @@ const Notifications = () => {
       try {
         const data = await apiJson('/api/notifications');
         const arr = data || [];
-        // for message notifications, fetch sender info and attach as `fromUser` for display
         const enriched = await Promise.all(arr.map(async (n: any) => {
           try {
             if ((n.type === 'message' || n.type === 'candidatura' || n.type === 'contratado') && n.data && n.data.fromUserId) {
               const u = await apiJson(`/api/auth/user?id=${n.data.fromUserId}`);
               return { ...n, fromUser: u };
             }
-          } catch (e) { console.warn('Erro ao buscar remetente da notificação', e); }
+          } catch (e) { console.warn(t('Erro ao buscar remetente da notificação'), e); }
           return n;
         }));
         setNotifications(enriched);
@@ -58,7 +59,7 @@ const Notifications = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold text-foreground">Notificações</h1>
+          <h1 className="text-xl font-bold text-foreground">{t('Notificações')}</h1>
         </div>
       </header>
 
@@ -84,14 +85,14 @@ const Notifications = () => {
                     });
                     navigate(`/chat?conversationId=${conv.id}&toUserId=${fromUserId}`);
                   } catch (e) {
-                    console.warn('Erro criando/recuperando conversa:', e);
+                    console.warn(t('Erro criando/recuperando conversa:'), e);
                     navigate(`/chat?toUserId=${fromUserId}`);
                   }
                 } else {
                   navigate('/chat');
                 }
               } catch (e) {
-                console.error('Erro ao abrir chat:', e);
+                console.error(t('Erro ao abrir chat:'), e);
                 navigate('/chat');
               }
             };
@@ -112,14 +113,14 @@ const Notifications = () => {
                             const conv = await apiJson('/api/chat/conversation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userAId: Number(getStoredUserId()), userBId: Number(fromUserId) }) });
                             navigate(`/chat?conversationId=${conv.id}&toUserId=${fromUserId}`);
                           } catch (e) {
-                            console.warn('Erro criando/recuperando conversa:', e);
+                            console.warn(t('Erro criando/recuperando conversa:'), e);
                             navigate(`/chat?toUserId=${fromUserId}`);
                           }
                         } else {
                           navigate('/chat');
                         }
                       } catch (e) {
-                        console.error('Erro ao abrir notificação de mensagem:', e);
+                        console.error(t('Erro ao abrir notificação de mensagem:'), e);
                         navigate('/chat');
                       }
                     }
@@ -133,7 +134,7 @@ const Notifications = () => {
                           <AvatarImage src={notification.fromUser.foto} />
                         ) : null}
                         <AvatarFallback className="bg-secondary text-darker-gray">
-                          {notification.fromUser && notification.fromUser.name ? notification.fromUser.name.split(' ').map((s:string)=>s[0]).slice(0,2).join('').toUpperCase() : 'N'}
+                          {notification.fromUser && notification.fromUser.name ? notification.fromUser.name.split(' ').map((s:string)=>s[0]).slice(0,2).join('').toUpperCase() : t('N')}
                         </AvatarFallback>
                       </Avatar>
                       <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1">
@@ -145,21 +146,21 @@ const Notifications = () => {
                     <p className="text-sm text-foreground">
                       {notification.type === 'message' ? (
                         <>
-                          <span className="font-semibold">{notification.fromUser?.name || 'Usuário'}</span>{' '}
-                          <span>enviou uma mensagem</span>
+                          <span className="font-semibold">{notification.fromUser?.name || t('Usuário')}</span>{' '}
+                          <span>{t('enviou uma mensagem')}</span>
                         </>
                       ) : notification.type === 'candidatura' ? (
                         <>
-                          <span className="font-semibold">{notification.fromUser?.name || 'Usuário'}</span>{' '}
-                          <span>se candidatou para seu serviço</span>
+                          <span className="font-semibold">{notification.fromUser?.name || t('Usuário')}</span>{' '}
+                          <span>{t('se candidatou para seu serviço')}</span>
                         </>
                       ) : notification.type === 'contratado' ? (
                         <>
-                          <span className="font-semibold">{notification.fromUser?.name || 'Usuário'}</span>{' '}
-                          <span>te selecionou para o serviço</span>
+                          <span className="font-semibold">{notification.fromUser?.name || t('Usuário')}</span>{' '}
+                          <span>{t('te selecionou para o serviço')}</span>
                         </>
                       ) : (
-                        <><span className="font-semibold">Notificação</span>{' '}{notification.type}</>
+                        <><span className="font-semibold">{t('Notificação')}</span>{' '}{notification.type}</>
                       )}
                     </p>
                     {notification.type === 'message' && notification.data?.text ? (
@@ -175,7 +176,7 @@ const Notifications = () => {
                           onClick={handleOpenMessage}
                         >
                           <MessageCircle className="h-4 w-4 mr-2" />
-                          Enviar Mensagem
+                          {t('Enviar Mensagem')}
                         </Button>
                       </div>
                     )}

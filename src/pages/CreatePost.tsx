@@ -1,5 +1,6 @@
 import "../css/createpost.css";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, DollarSign, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -25,18 +26,8 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
-const categories = [
-  "Limpeza",
-  "Construção",
-  "Tecnologia",
-  "Beleza",
-  "Eventos",
-  "Educação",
-  "Transporte",
-  "Jardinagem",
-];
-
 const CreatePost = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [postType, setPostType] = useState<"offer" | "request">("offer");
   const [formData, setFormData] = useState({
@@ -52,6 +43,17 @@ const CreatePost = () => {
   const [addrOpen, setAddrOpen] = useState(false);
   const [addrDraft, setAddrDraft] = useState({ cep: '', rua: '', numero: '', bairro: '', cidade: '', estado: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const categories = [
+    t("Limpeza"),
+    t("Construção"),
+    t("Tecnologia"),
+    t("Beleza"),
+    t("Eventos"),
+    t("Educação"),
+    t("Transporte"),
+    t("Jardinagem"),
+  ];
 
   async function buscarCepToDraft(rawCep: string) {
     // do nothing when not in 'request' mode
@@ -69,7 +71,7 @@ const CreatePost = () => {
       if (!data || data.erro) return;
       setAddrDraft(d => ({ ...d, rua: data.logradouro ?? '', bairro: data.bairro ?? '', cidade: data.localidade ?? '', estado: data.uf ?? '' }));
     } catch (err) {
-      console.error('Erro ViaCEP', err);
+      console.error(t('Erro ViaCEP'), err);
     }
   }
 
@@ -78,7 +80,7 @@ const CreatePost = () => {
     // Require CEP for backend geocoding only for requests (who need location)
     if (postType === 'request') {
       if (!addrDraft.cep || addrDraft.cep.replace(/\D/g, '').length !== 8) {
-        toast.error('Por favor, informe um CEP válido no endereço.');
+        toast.error(t('Por favor, informe um CEP válido no endereço.'));
         return;
       }
     }
@@ -96,13 +98,13 @@ const CreatePost = () => {
     if (postType === 'request') {
       // require title and price for requests
       if (!formData.title || !formData.price) {
-        toast.error('Para solicitar um serviço, preencha título e preço.');
+        toast.error(t('Para solicitar um serviço, preencha título e preço.'));
         setIsSubmitting(false);
         return;
       }
       valorNum = parseFloat(formData.price.replace(/[^0-9,\.]/g, '').replace(',', '.')) || 0;
       if (valorNum <= 0) {
-        toast.error('Informe um preço válido para solicitar um serviço.');
+        toast.error(t('Informe um preço válido para solicitar um serviço.'));
         setIsSubmitting(false);
         return;
       }
@@ -127,7 +129,7 @@ const CreatePost = () => {
         valorNum = 0;
       }
       if (!titulo) {
-        titulo = formData.category ? `Serviço: ${formData.category}` : 'Serviço oferecido';
+        titulo = formData.category ? `${t('Serviço:')} ${formData.category}` : t('Serviço oferecido');
       }
       if (!dataCampo) dataCampo = new Date().toISOString();
     }
@@ -160,17 +162,17 @@ const CreatePost = () => {
       .then(async (res) => {
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || 'Erro ao criar post');
+          throw new Error(err.error || t('Erro ao criar post'));
         }
         return res.json();
       })
       .then((created) => {
-        toast.success('Post criado com sucesso!');
+        toast.success(t('Post criado com sucesso!'));
         navigate('/feed');
       })
       .catch((err) => {
-        console.error('Erro criando post', err);
-        toast.error(err.message || 'Erro ao criar post');
+        console.error(t('Erro criando post'), err);
+        toast.error(err.message || t('Erro ao criar post'));
       })
       .finally(() => setIsSubmitting(false));
   };
@@ -187,7 +189,7 @@ const CreatePost = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold text-foreground">Criar Post</h1>
+          <h1 className="text-xl font-bold text-foreground">{t('Criar Post')}</h1>
         </div>
       </header>
 
@@ -195,7 +197,7 @@ const CreatePost = () => {
         <Card className="p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label>Tipo de Post</Label>
+              <Label>{t('Tipo de Post')}</Label>
               <div className="grid grid-cols-2 gap-3">
                 <Button
                   type="button"
@@ -203,7 +205,7 @@ const CreatePost = () => {
                   className={postType === "offer" ? "bg-primary" : ""}
                   onClick={() => setPostType("offer")}
                 >
-                  Oferecer Serviço
+                  {t('Oferecer Serviço')}
                 </Button>
                 <Button
                   type="button"
@@ -211,13 +213,13 @@ const CreatePost = () => {
                   className={postType === "request" ? "bg-primary" : ""}
                   onClick={() => setPostType("request")}
                 >
-                  Solicitar Serviço
+                  {t('Solicitar Serviço')}
                 </Button>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Categoria</Label>
+              <Label htmlFor="category">{t('Categoria')}</Label>
               <Select
                 value={formData.category}
                 onValueChange={(value) =>
@@ -225,7 +227,7 @@ const CreatePost = () => {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
+                  <SelectValue placeholder={t('Selecione uma categoria')} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((cat) => (
@@ -238,10 +240,10 @@ const CreatePost = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="title">Título</Label>
+              <Label htmlFor="title">{t('Título')}</Label>
               <Input
                 id="title"
-                placeholder={postType === 'request' ? 'Ex: Preciso de limpeza residencial' : 'Ex: Limpeza doméstica'}
+                placeholder={postType === 'request' ? t('Ex: Preciso de limpeza residencial') : t('Ex: Limpeza doméstica')}
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
@@ -249,10 +251,10 @@ const CreatePost = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Descrição</Label>
+              <Label htmlFor="description">{t('Descrição')}</Label>
               <Textarea
                 id="description"
-                placeholder="Descreva o serviço em detalhes..."
+                placeholder={t('Descreva o serviço em detalhes...')}
                 rows={5}
                 className="createpost-description"
                 value={formData.description}
@@ -268,12 +270,12 @@ const CreatePost = () => {
             {postType === 'request' ? (
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Preço</Label>
+                  <Label htmlFor="price">{t('Preço')}</Label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="price"
-                      placeholder="R$ 120/dia"
+                      placeholder={t('R$ 120/dia')}
                       className="pl-10"
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: e.target.value })}
@@ -283,57 +285,57 @@ const CreatePost = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Localização</Label>
+                  <Label>{t('Localização')}</Label>
                   <Dialog open={addrOpen} onOpenChange={(open)=>{ if(open){ setAddrDraft({ cep: '', rua: '', numero: '', bairro: '', cidade: '', estado: '' }); } setAddrOpen(open); }}>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <DialogTrigger asChild>
-                        <Input id="location" value={formData.location} placeholder="Localização" className="pl-10 cursor-pointer" readOnly />
+                        <Input id="location" value={formData.location} placeholder={t('Localização')} className="pl-10 cursor-pointer" readOnly />
                       </DialogTrigger>
                     </div>
 
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Endereço</DialogTitle>
-                        <DialogDescription>Digite o CEP ou preencha o endereço manualmente.</DialogDescription>
+                        <DialogTitle>{t('Endereço')}</DialogTitle>
+                        <DialogDescription>{t('Digite o CEP ou preencha o endereço manualmente.')}</DialogDescription>
                       </DialogHeader>
 
                       <div className="space-y-3">
                         <div>
-                          <Label>CEP</Label>
-                          <Input value={addrDraft.cep} disabled={postType !== 'request'} onChange={(e)=>{ const v=e.target.value; setAddrDraft(d=>({...d, cep: v })); const digits = v.replace(/\D/g,''); if(digits.length===8) buscarCepToDraft(digits); if(digits.length===0) setAddrDraft(d=>({...d, rua:'',bairro:'',cidade:'',estado:''})); }} placeholder="CEP" />
+                          <Label>{t('CEP')}</Label>
+                          <Input value={addrDraft.cep} disabled={postType !== 'request'} onChange={(e)=>{ const v=e.target.value; setAddrDraft(d=>({...d, cep: v })); const digits = v.replace(/\D/g,''); if(digits.length===8) buscarCepToDraft(digits); if(digits.length===0) setAddrDraft(d=>({...d, rua:'',bairro:'',cidade:'',estado:''})); }} placeholder={t('CEP')} />
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                           <div>
-                            <Label>Estado</Label>
+                            <Label>{t('Estado')}</Label>
                             <Input value={addrDraft.estado} onChange={e=>setAddrDraft(d=>({...d, estado: e.target.value }))} />
                           </div>
                           <div>
-                            <Label>Cidade</Label>
+                            <Label>{t('Cidade')}</Label>
                             <Input value={addrDraft.cidade} onChange={e=>setAddrDraft(d=>({...d, cidade: e.target.value }))} />
                           </div>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: 12 }}>
                           <div>
-                            <Label>Rua</Label>
+                            <Label>{t('Rua')}</Label>
                             <Input value={addrDraft.rua} onChange={e=>setAddrDraft(d=>({...d, rua: e.target.value }))} />
                           </div>
                           <div>
-                            <Label>Nº</Label>
+                            <Label>{t('Nº')}</Label>
                             <Input value={addrDraft.numero} onChange={e=>setAddrDraft(d=>({...d, numero: e.target.value }))} />
                           </div>
                           <div>
-                            <Label>Bairro</Label>
+                            <Label>{t('Bairro')}</Label>
                             <Input value={addrDraft.bairro} onChange={e=>setAddrDraft(d=>({...d, bairro: e.target.value }))} />
                           </div>
                         </div>
                       </div>
 
                       <DialogFooter>
-                        <Button variant="ghost" onClick={()=>setAddrOpen(false)}>Cancelar</Button>
-                        <Button onClick={()=>{ setFormData(prev=>({ ...prev, location: `${addrDraft.rua}${addrDraft.numero? ', ' + addrDraft.numero : ''}${addrDraft.bairro? ', ' + addrDraft.bairro : ''}${addrDraft.cidade? ', ' + addrDraft.cidade : ''}${addrDraft.estado? ', ' + addrDraft.estado : ''}` })); setAddrOpen(false); }}>Salvar</Button>
+                        <Button variant="ghost" onClick={()=>setAddrOpen(false)}>{t('Cancelar')}</Button>
+                        <Button onClick={()=>{ setFormData(prev=>({ ...prev, location: `${addrDraft.rua}${addrDraft.numero? ', ' + addrDraft.numero : ''}${addrDraft.bairro? ', ' + addrDraft.bairro : ''}${addrDraft.cidade? ', ' + addrDraft.cidade : ''}${addrDraft.estado? ', ' + addrDraft.estado : ''}` })); setAddrOpen(false); }}>{t('Salvar')}</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -341,12 +343,12 @@ const CreatePost = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="price">Preço</Label>
+                <Label htmlFor="price">{t('Preço')}</Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="price"
-                    placeholder="R$ 120/dia"
+                    placeholder={t('R$ 120/dia')}
                     className="pl-10 w-full"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
@@ -358,7 +360,7 @@ const CreatePost = () => {
 
             {postType === 'request' && (
               <div className="space-y-2">
-                <Label htmlFor="date">Data</Label>
+                <Label htmlFor="date">{t('Data')}</Label>
                 <div className="relative">
                   <Calendar className="createpost-calendar-icon h-4 w-4" />
                   <div className="flex gap-2">
@@ -383,7 +385,7 @@ const CreatePost = () => {
             )}
 
             <Button type="submit" className="w-full bg-primary hover:bg-primary-light transition-all duration-200" disabled={isSubmitting}>
-              {isSubmitting ? 'Publicando...' : 'Publicar'}
+              {isSubmitting ? t('Publicando...') : t('Publicar')}
             </Button>
           </form>
         </Card>

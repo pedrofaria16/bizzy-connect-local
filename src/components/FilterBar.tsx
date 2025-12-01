@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Filter, DollarSign } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from 'react-i18next';
 
 type PriceSort = 'asc' | 'desc' | null;
 
@@ -10,40 +11,31 @@ interface FilterBarProps {
   onCategoriesChange?: (cats: string[]) => void;
   priceSort?: PriceSort;
   onPriceSortChange?: (p: PriceSort) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
-const categories = [
-  "Todos",
-  "Limpeza",
-  "Construção",
-  "Tecnologia",
-  "Beleza",
-  "Eventos",
-  "Educação",
-  "Transporte",
-  "Jardinagem",
-];
-
 const FilterBar = ({ selectedCategories = [], onCategoriesChange, priceSort = null, onPriceSortChange, searchQuery = '', onSearchChange }: FilterBarProps) => {
+  const { t } = useTranslation();
   const [localCats, setLocalCats] = useState<string[]>(selectedCategories);
 
-  function toggleCategory(cat: string) {
-    // If user clicked "Todos", select only it and deselect others
-    if (cat === "Todos") {
-      const next = ["Todos"];
-      setLocalCats(next);
-      onCategoriesChange?.(next);
-      return;
-    }
+  // USE CHAVES CONSISTENTES - não traduza os valores internos
+  const categories = [
+    { key: 'Todos', label: t('Todos') },
+    { key: 'Limpeza', label: t('Limpeza') },
+    { key: 'Construção', label: t('Construção') },
+    { key: 'Tecnologia', label: t('Tecnologia') },
+    { key: 'Beleza', label: t('Beleza') },
+    { key: 'Eventos', label: t('Eventos') },
+    { key: 'Educação', label: t('Educação') },
+    { key: 'Transporte', label: t('Transporte') },
+    { key: 'Jardinagem', label: t('Jardinagem') },
+  ];
 
-    // Clicking any other category should deselect "Todos" if present
+  function toggleCategory(catKey: string) {
     let next: string[];
-    if (localCats.includes(cat)) {
-      next = localCats.filter(c => c !== cat && c !== "Todos");
-    } else {
-      next = [...localCats.filter(c => c !== "Todos"), cat];
-    }
-
+    if (localCats.includes(catKey)) next = localCats.filter(c => c !== catKey);
+    else next = [...localCats, catKey];
     setLocalCats(next);
     onCategoriesChange?.(next);
   }
@@ -54,29 +46,29 @@ const FilterBar = ({ selectedCategories = [], onCategoriesChange, priceSort = nu
   }
 
   return (
-    <div className="fixed top-16 left-0 z-40 w-full bg-card border-b border-border py-3">
+    <div className="sticky top-16 z-40 bg-card border-b border-border py-3">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-center gap-3 overflow-x-auto pb-2">
           <Button variant="outline" size="sm" className="gap-2 shrink-0 border-border hover:bg-transparent hover:text-inherit">
             <Filter className="h-4 w-4" />
-            Filtros
+            {t('Filtros')}
           </Button>
 
-          {/* search removed from filter bar; use header search only */}
           <div className="h-8 w-px bg-border shrink-0" />
 
+          {/* ATUALIZE AQUI: use category.key internamente e category.label visualmente */}
           {categories.map((category) => (
             <Badge
-              key={category}
-              variant={localCats.includes(category) ? "default" : "outline"}
+              key={category.key}
+              variant={localCats.includes(category.key) ? "default" : "outline"}
               className={`cursor-pointer shrink-0 px-4 py-2 text-sm ${
-                localCats.includes(category)
+                localCats.includes(category.key)
                   ? "bg-primary text-primary-foreground"
                   : "border-border text-darker-gray"
               }`}
-              onClick={() => toggleCategory(category)}
+              onClick={() => toggleCategory(category.key)}
             >
-              {category}
+              {category.label}
             </Badge>
           ))}
 
@@ -84,7 +76,7 @@ const FilterBar = ({ selectedCategories = [], onCategoriesChange, priceSort = nu
 
           <Button variant={priceSort ? 'default' : 'outline'} size="sm" className="gap-2 shrink-0 border-border" onClick={togglePrice}>
             <DollarSign className="h-4 w-4" />
-            Preço {priceSort ? (priceSort === 'asc' ? '↑' : '↓') : ''}
+            {t('Preço')} {priceSort ? (priceSort === 'asc' ? '↑' : '↓') : ''}
           </Button>
         </div>
       </div>

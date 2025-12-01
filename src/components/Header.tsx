@@ -1,11 +1,13 @@
 import { Search, Bell, MessageCircle, User, Wallet } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from 'react-i18next';
 import { apiJson } from '@/lib/api';
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 const Header = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const raw = typeof window !== 'undefined' ? localStorage.getItem('bizzy_user') : null;
@@ -16,6 +18,7 @@ const Header = () => {
   const [headerSearch, setHeaderSearch] = useState<string>("");
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
+  
   useEffect(() => {
     try {
       const params = new URLSearchParams(location.search);
@@ -38,11 +41,12 @@ const Header = () => {
         setHasUnreadMessages(unread.some(n => n.type === 'message'));
       } catch (e) {
         // falha silenciosa
-        console.debug('Erro ao buscar notificações no header', e);
+        console.debug(t('Erro ao buscar notificações no header'), e);
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [t]);
+
   const abrirMenu = () => setMenuAberto((prev) => !prev);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -79,7 +83,7 @@ const Header = () => {
                   navigate(`/feed${v ? `?q=${encodeURIComponent(v)}` : ''}`);
                 }
               }}
-              placeholder="Buscar serviços..." 
+              placeholder={t("Buscar serviços...")}
               className="pl-10 bg-secondary/50 border-border focus-visible:ring-primary"
             />
           </div>
@@ -124,7 +128,7 @@ const Header = () => {
             // Quando não há usuário logado, mostrar apenas o botão Entrar no lugar do perfil
             <>
               <Button onClick={() => navigate('/login')} id="continuar-login">
-                Entrar
+                {t("Entrar")}
               </Button>
             </>
           )}
@@ -136,7 +140,7 @@ const Header = () => {
               size="icon"
               className="hover:bg-secondary"
               onClick={abrirMenu}
-              aria-label="Abrir opções"
+              aria-label={t("Abrir opções")}
             >
               {/* Simple three-bar hamburger (black) */}
               <span className="flex flex-col justify-between h-4 w-4">
@@ -152,25 +156,25 @@ const Header = () => {
                 <li>
                   <button className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm" id="carteira" onClick={() => { setMenuAberto(false); navigate("/carteira"); }}>
                     <span className="w-4 h-4 flex items-center justify-center text-darker-gray"><Wallet className="h-4 w-4" /></span>
-                    <span className="flex-1">Carteira</span>
+                    <span className="flex-1">{t("Carteira")}</span>
                   </button>
                 </li>
                 <li>
                   <button className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm" onClick={() => { setMenuAberto(false); navigate("/sobre-nos"); }}>
                     <span className="w-4 h-4" />
-                    <span className="flex-1">Sobre nós</span>
+                    <span className="flex-1">{t("Sobre nós")}</span>
                   </button>
                 </li>
                 <li>
                   <button className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm" onClick={() => { setMenuAberto(false); navigate("/politica-de-privacidade"); }}>
                     <span className="w-4 h-4" />
-                    <span className="flex-1">Política e Privacidade</span>
+                    <span className="flex-1">{t("Política e Privacidade")}</span>
                   </button>
                 </li>
                 <li>
                   <button className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm" onClick={() => { setMenuAberto(false); navigate("/termos-de-uso"); }}>
                     <span className="w-4 h-4" />
-                    <span className="flex-1">Termos de Uso</span>
+                    <span className="flex-1">{t("Termos de Uso")}</span>
                   </button>
                 </li>
               </ul>

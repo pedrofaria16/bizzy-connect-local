@@ -1,4 +1,6 @@
-import React, { useState, useEffect, ChangeEvent } from "react";
+import React, { useState, useEffect, useRef, ChangeEvent } from "react";
+import { useTranslation } from 'react-i18next'; // ← ADICIONADO
+import i18n from 'i18next'; // ← ADICIONADO
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Image as ImageIcon, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,7 +38,12 @@ function formatarData(valor: string) {
 }
 
 const EditProfile: React.FC = () => {
+  const { t } = useTranslation();
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement | null>(null);
+
   const navigate = useNavigate();
+  const [cepLocked, setCepLocked] = useState(false);
   const raw = typeof window !== 'undefined' ? localStorage.getItem('bizzy_user') : null;
   let initialUser: any = null;
   try { initialUser = raw ? JSON.parse(raw) : null; } catch(e) { initialUser = null; }
@@ -48,11 +55,9 @@ const EditProfile: React.FC = () => {
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
   const [cep, setCep] = useState('');
-  const [cepLocked, setCepLocked] = useState(false);
 
   useEffect(() => {
     if (initialUser?.endereco) {
-      // try to split address saved as "rua, numero, bairro, cidade, estado"
       const parts = (initialUser.endereco as string).split(',').map(s => s.trim());
       setRua(parts[0] ?? '');
       setNumero(parts[1] ?? '');
@@ -62,12 +67,10 @@ const EditProfile: React.FC = () => {
     }
   }, []);
 
-  // If initialUser has a CEP-ish value embedded (not implemented), we could set cepLocked here.
-
   const [name, setName] = useState(initialUser?.name ?? '');
   const [telefone, setTelefone] = useState(initialUser?.telefone ?? '');
   const [nascimento, setNascimento] = useState(initialUser?.nascimento ?? '');
-  // services as array, show chips
+  // categorias — mantemos as chaves em português, mas exibimos via t() para tradução
   const servicosOpcoes = [
     "Elétrica", "Pintura", "Jardinagem", "Limpeza", "Aulas", "Transporte", "Tecnologia", "Eventos", "Montagem", "Reformas"
   ];
@@ -80,7 +83,6 @@ const EditProfile: React.FC = () => {
   const [saving, setSaving] = useState(false);
 
   const backendBase = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : '';
-  // Normalize preview source: if fotoPreview is a data URL or absolute URL keep it, otherwise prefix backendBase
   const previewSrc = fotoPreview ? (
     (fotoPreview.startsWith('data:') || fotoPreview.startsWith('http')) ? fotoPreview : `${backendBase}${fotoPreview}`
   ) : '';
@@ -95,11 +97,9 @@ const EditProfile: React.FC = () => {
     }
   }
 
-  // CEP lookup via ViaCEP
   async function buscarCep(rawCep: string) {
     const onlyDigits = rawCep.replace(/\D/g, '');
     if (onlyDigits.length !== 8) {
-      // if user cleared CEP, clear address fields and unlock
       if (onlyDigits.length === 0) {
         setRua(''); setBairro(''); setCidade(''); setEstado(''); setCepLocked(false);
       }
@@ -113,10 +113,9 @@ const EditProfile: React.FC = () => {
       setBairro(data.bairro ?? '');
       setCidade(data.localidade ?? '');
       setEstado(data.uf ?? '');
-      // lock the address fields (except house number)
       setCepLocked(true);
     } catch (err) {
-      console.error('Erro ViaCEP', err);
+      console.error(t('Erro ViaCEP'), err);
     }
   }
 
@@ -124,17 +123,16 @@ const EditProfile: React.FC = () => {
     e.preventDefault();
     setSaving(true);
     try {
-  const endereco = `${rua}, ${numero}, ${bairro}, ${cidade}, ${estado}`;
-  const apiUrl = process.env.NODE_ENV === 'development' ? '/api/auth/editar' : 'http://localhost:5000/api/auth/editar';
-  const body = { id: initialUser?.id, name, telefone, nascimento, servicos: servicosArr.join(', '), description, sexo, endereco };
+      const endereco = `${rua}, ${numero}, ${bairro}, ${cidade}, ${estado}`;
+      const apiUrl = process.env.NODE_ENV === 'development' ? '/api/auth/editar' : 'http://localhost:5000/api/auth/editar';
+      const body = { id: initialUser?.id, name, telefone, nascimento, servicos: servicosArr.join(', '), description, sexo, endereco };
       const res = await fetch(apiUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.message || 'Erro ao atualizar perfil');
+        toast.error(data.message || t('Erro ao atualizar perfil'));
         setSaving(false);
         return;
       }
-      // update localStorage
       let updatedUser = data;
       if (fotoFile) {
         const uploadUrl = process.env.NODE_ENV === 'development' ? '/api/auth/upload-foto' : 'http://localhost:5000/api/auth/upload-foto';
@@ -148,24 +146,34 @@ const EditProfile: React.FC = () => {
         }
       }
       localStorage.setItem('bizzy_user', JSON.stringify(updatedUser));
-      toast.success('Perfil atualizado com sucesso');
-      navigate('/profile');
+      toast.success(t('Perfil atualizado com sucesso'));
+      navigate('/feed');
     } catch (err) {
       console.error(err);
-      toast.error('Erro ao conectar com servidor');
+      toast.error(t('Erro ao conectar com servidor'));
     } finally {
       setSaving(false);
     }
   };
 
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!langMenuRef.current) return;
+      if (!(e.target instanceof Node)) return;
+      if (!langMenuRef.current.contains(e.target)) setLangMenuOpen(false);
+    }
+    if (langMenuOpen) document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [langMenuOpen]);
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b border-border bg-card">
         <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/profile')} className="hover:bg-secondary">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/feed')} className="hover:bg-secondary">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold text-foreground">Editar Perfil</h1>
+          <h1 className="text-xl font-bold text-foreground">{t('Editar Perfil')}</h1>
         </div>
       </header>
 
@@ -174,19 +182,18 @@ const EditProfile: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Nome</Label>
-                <Input value={name} onChange={e => setName(e.target.value)} placeholder="Nome" />
+                <Label>{t('Nome')}</Label>
+                <Input value={name} onChange={e => setName(e.target.value)} placeholder={t('Nome')} />
               </div>
               <div>
-                <Label>Telefone</Label>
-                <Input value={telefone} onChange={e => setTelefone(formatarTelefone(e.target.value))} placeholder="(xx) xxxxx-xxxx" />
+                <Label>{t('Telefone')}</Label>
+                <Input value={telefone} onChange={e => setTelefone(formatarTelefone(e.target.value))} placeholder={t('(xx) xxxxx-xxxx')} />
               </div>
             </div>
 
-            {/* Address: top row CEP / Estado / Cidade (2fr,2fr,1fr) */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 2fr 1fr', gap: 12 }}>
               <div>
-                <Label>CEP</Label>
+                <Label>{t('CEP')}</Label>
                 <Input
                   value={cep}
                   onChange={e=>{
@@ -194,46 +201,43 @@ const EditProfile: React.FC = () => {
                     setCep(val);
                     const digits = val.replace(/\D/g,'');
                     if (digits.length === 0) {
-                      // clear address immediately when cep emptied
                       setRua(''); setBairro(''); setCidade(''); setEstado(''); setCepLocked(false);
                     }
-                    // if user finished typing 8 digits, trigger lookup immediately
                     if (digits.length === 8) {
                       buscarCep(digits);
                     }
                   }}
-                  placeholder="CEP"
+                  placeholder={t('CEP')}
                   onBlur={(e)=>buscarCep(e.target.value)}
                 />
               </div>
               <div>
-                <Label>Estado</Label>
-                <Input value={estado} onChange={e=>setEstado(e.target.value)} placeholder="Estado" readOnly={cepLocked} />
+                <Label>{t('Estado')}</Label>
+                <Input value={estado} onChange={e=>setEstado(e.target.value)} placeholder={t('Estado')} readOnly={cepLocked} />
               </div>
               <div>
-                <Label>Cidade</Label>
-                <Input value={cidade} onChange={e=>setCidade(e.target.value)} placeholder="Cidade" readOnly={cepLocked} />
+                <Label>{t('Cidade')}</Label>
+                <Input value={cidade} onChange={e=>setCidade(e.target.value)} placeholder={t('Cidade')} readOnly={cepLocked} />
               </div>
             </div>
 
-            {/* Address: bottom row Rua / Nº / Bairro (2fr,1fr,2fr) */}
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr', gap: 12, marginTop: 12 }}>
               <div>
-                <Label>Rua</Label>
-                <Input value={rua} onChange={e=>setRua(e.target.value)} placeholder="Rua" readOnly={cepLocked} />
+                <Label>{t('Rua')}</Label>
+                <Input value={rua} onChange={e=>setRua(e.target.value)} placeholder={t('Rua')} readOnly={cepLocked} />
               </div>
               <div>
-                <Label>Nº</Label>
-                <Input value={numero} onChange={e=>setNumero(e.target.value)} placeholder="Nº" />
+                <Label>{t('Número')}</Label>
+                <Input value={numero} onChange={e=>setNumero(e.target.value)} placeholder={t('Número')} />
               </div>
               <div>
-                <Label>Bairro</Label>
-                <Input value={bairro} onChange={e=>setBairro(e.target.value)} placeholder="Bairro" readOnly={cepLocked} />
+                <Label>{t('Bairro')}</Label>
+                <Input value={bairro} onChange={e=>setBairro(e.target.value)} placeholder={t('Bairro')} readOnly={cepLocked} />
               </div>
             </div>
 
             <div>
-              <Label>Serviços que trabalha</Label>
+              <Label>{t('Serviços que trabalha')}</Label>
               <div className="servicos-chips-group mt-2">
                 {servicosOpcoes.map((serv) => (
                   <button
@@ -243,15 +247,16 @@ const EditProfile: React.FC = () => {
                       'servico-chip' + (servicosArr.includes(serv) ? ' servico-chip-selected' : '')
                     }
                     onClick={() => setServicosArr(prev => prev.includes(serv) ? prev.filter(s=>s!==serv) : [...prev, serv])}
+                    aria-pressed={servicosArr.includes(serv)}
                   >
-                    {serv}
+                    {t(serv)}
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <Label>Descrição</Label>
+              <Label>{t('Descrição')}</Label>
               <Textarea value={description} onChange={e => setDescription(e.target.value.slice(0,300))} rows={4} className="resize-none" />
               <div className="text-sm text-muted-foreground">{description.length}/300</div>
             </div>
@@ -277,9 +282,37 @@ const EditProfile: React.FC = () => {
               </div>
             </div>
 
+            {/* Botão "IDIOMA" — um pouco abaixo da foto */}
+            <div className="mt-6 flex justify-center">
+              <div className="relative" ref={langMenuRef}>
+                <Button type="button" variant="outline" onClick={() => setLangMenuOpen(v => !v)}>
+                  {t('Idioma')}
+                </Button>
+
+                {langMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow z-50">
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                      onClick={() => { i18n.changeLanguage('pt-BR'); setLangMenuOpen(false); }}
+                    >
+                      PT-BR
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 hover:bg-gray-100"
+                      onClick={() => { i18n.changeLanguage('en'); setLangMenuOpen(false); }}
+                    >
+                      INGLES
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <div className="flex gap-2">
-              <Button type="submit" className="bg-primary" disabled={saving}>{saving ? 'Salvando...' : 'Salvar'}</Button>
-              <Button type="button" variant="ghost" onClick={() => navigate('/profile')}>Cancelar</Button>
+              <Button type="submit" className="bg-primary" disabled={saving}>{saving ? t('Salvando...') : t('Salvar')}</Button>
+              <Button type="button" variant="ghost" onClick={() => navigate('/feed')}>{t('Cancelar')}</Button>
             </div>
           </form>
         </Card>

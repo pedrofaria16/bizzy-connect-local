@@ -22,6 +22,9 @@ interface BackendPost {
   lat?: number | null;
   lon?: number | null;
   User?: { id?: number, name?: string, foto?: string };
+  // backend may provide either "type" (EN) or "tipo" (PT); accept both to avoid TS errors
+  type?: 'request' | 'offer' | string;
+  tipo?: string;
 }
 
 const Index = () => {

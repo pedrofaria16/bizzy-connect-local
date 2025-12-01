@@ -1,4 +1,9 @@
 import React, { useState, useEffect, ChangeEvent } from "react";
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import "../css/cadastro.css";
+
 // Função para formatar telefone brasileiro (99) 99999-9999
 function formatarTelefone(valor: string) {
   valor = valor.replace(/\D/g, "");
@@ -24,11 +29,9 @@ function formatarData(valor: string) {
   }
   return valor;
 }
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import "../css/cadastro.css";
 
 const Cadastro: React.FC = () => {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -46,18 +49,18 @@ const Cadastro: React.FC = () => {
   const buscarCep = async (rawCep: string) => {
     const digits = (rawCep || "").replace(/\D/g, "");
     if (digits.length !== 8) {
-      toast.error('CEP inválido — informe 8 dígitos.');
+      toast.error(t('CEP inválido — informe 8 dígitos.'));
       return;
     }
     try {
       const resp = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
       if (!resp.ok) {
-        toast.error('Erro ao consultar CEP.');
+        toast.error(t('Erro ao consultar CEP.'));
         return;
       }
       const data = await resp.json();
       if (data.erro) {
-        toast.error('CEP não encontrado.');
+        toast.error(t('CEP não encontrado.'));
         return;
       }
       // Preenche campos com os valores retornados
@@ -67,16 +70,19 @@ const Cadastro: React.FC = () => {
       if (data.uf) setEstado(data.uf);
       // Formata o CEP para 00000-000
       setCep(digits.replace(/(\d{5})(\d{3})/, "$1-$2"));
-      toast.success('Endereço preenchido a partir do CEP.');
+      toast.success(t('Endereço preenchido a partir do CEP.'));
     } catch (e) {
-      console.error('Erro buscar CEP', e);
-      toast.error('Erro ao consultar CEP.');
+      console.error(t('Erro buscar CEP'), e);
+      toast.error(t('Erro ao consultar CEP.'));
     }
   };
+  
   // Serviços múltiplos
   const servicosOpcoes = [
-    "Elétrica", "Pintura", "Jardinagem", "Limpeza", "Aulas", "Transporte", "Tecnologia", "Eventos", "Montagem", "Reformas"
+    t("Elétrica"), t("Pintura"), t("Jardinagem"), t("Limpeza"), t("Aulas"), 
+    t("Transporte"), t("Tecnologia"), t("Eventos"), t("Montagem"), t("Reformas")
   ];
+  
   const [servicos, setServicos] = useState<string[]>([]);
   const [telefone, setTelefone] = useState("");
   const [nascimento, setNascimento] = useState("");
@@ -94,7 +100,6 @@ const Cadastro: React.FC = () => {
       document.body.classList.remove("body-cadastro");
     };
   }, []);
-
 
   // Manipula upload de foto
   const handleFotoChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -133,10 +138,10 @@ const Cadastro: React.FC = () => {
     e.preventDefault();
     setMensagem("");
     let errosVal: { telefone?: string; nascimento?: string } = {};
-    if (!telefone) errosVal.telefone = "Telefone é obrigatório.";
-    else if (!validarTelefone(telefone)) errosVal.telefone = "Formato: (99) 99999-9999";
-    if (!nascimento) errosVal.nascimento = "Data de nascimento é obrigatória.";
-    else if (!validarNascimento(nascimento)) errosVal.nascimento = "Formato: dd/mm/aaaa";
+    if (!telefone) errosVal.telefone = t("Telefone é obrigatório.");
+    else if (!validarTelefone(telefone)) errosVal.telefone = t("Formato: (99) 99999-9999");
+    if (!nascimento) errosVal.nascimento = t("Data de nascimento é obrigatória.");
+    else if (!validarNascimento(nascimento)) errosVal.nascimento = t("Formato: dd/mm/aaaa");
     setErros(errosVal);
     if (Object.keys(errosVal).length > 0) return;
     try {
@@ -159,7 +164,7 @@ const Cadastro: React.FC = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        setMensagem("Cadastro realizado com sucesso! Entrando...");
+        setMensagem(t("Cadastro realizado com sucesso! Entrando..."));
         // Se o backend retornou o usuário, salva no localStorage e navega para o perfil
         try {
           if (data && data.user) {
@@ -168,10 +173,10 @@ const Cadastro: React.FC = () => {
         } catch (e) { /* ignore storage errors */ }
         setTimeout(() => navigate('/profile'), 1000);
       } else {
-        setMensagem(`Erro: ${data.message}`);
+        setMensagem(`${t('Erro:')} ${data.message}`);
       }
     } catch (error) {
-      setMensagem("Erro ao conectar com o servidor.");
+      setMensagem(t("Erro ao conectar com o servidor."));
     }
   };
 
@@ -186,21 +191,21 @@ const Cadastro: React.FC = () => {
           onSubmit={step === 3 ? handleSubmit : (e) => { e.preventDefault(); setStep(step + 1); }}
         >
           <div className="cadastro-header">
-            <h1 id="title-cadastro">Crie sua conta</h1>
+            <h1 id="title-cadastro">{t('Crie sua conta')}</h1>
             <p className="cadastro-subtitle">
               {step === 1
-                ? "Preencha os dados básicos"
+                ? t("Preencha os dados básicos")
                 : step === 2
-                ? "Agora complete seu endereço e serviços"
-                : "Finalize com dados adicionais"}
+                ? t("Agora complete seu endereço e serviços")
+                : t("Finalize com dados adicionais")}
             </p>
           </div>
           {step === 1 && (
             <>
               <div className="input-group">
-                <label className="input-label">Nome</label>
+                <label className="input-label">{t('Nome')}</label>
                 <input
-                  placeholder="Digite seu nome..."
+                  placeholder={t('Digite seu nome...')}
                   type="text"
                   className="input-cadastro"
                   value={nome}
@@ -210,10 +215,10 @@ const Cadastro: React.FC = () => {
               </div>
               <div className="input-group">
                 <label className="input-label">
-                  E-mail
+                  {t('E-mail')}
                 </label>
                 <input
-                  placeholder="Digite seu e-mail..."
+                  placeholder={t('Digite seu e-mail...')}
                   type="email"
                   className="input-cadastro"
                   value={email}
@@ -223,11 +228,11 @@ const Cadastro: React.FC = () => {
               </div>
               <div className="input-group">
                 <label className="input-label">
-                  Senha
+                  {t('Senha')}
                 </label>
                 <div className="password-input-wrapper">
                   <input
-                    placeholder="Digite sua senha..."
+                    placeholder={t('Digite sua senha...')}
                     type={showPassword ? "text" : "password"}
                     className="input-cadastro"
                     value={senha}
@@ -244,10 +249,10 @@ const Cadastro: React.FC = () => {
               </div>
               <div className="input-group">
                 <label className="input-label">
-                  CPF
+                  {t('CPF')}
                 </label>
                 <input
-                  placeholder="Digite seu CPF..."
+                  placeholder={t('Digite seu CPF...')}
                   type="text"
                   className="input-cadastro"
                   value={cpf}
@@ -261,14 +266,14 @@ const Cadastro: React.FC = () => {
             <>
               <div className="input-group">
                 <label className="input-label">
-                  Endereço
+                  {t('Endereço')}
                 </label>
                 {/* Top row: CEP, Estado, Cidade - use responsive classes */}
                 <div className="row-fields">
                   <div className="field-col col-w-140">
-                    <label style={{ fontWeight: 600, fontSize: 13 }}>CEP</label>
+                    <label style={{ fontWeight: 600, fontSize: 13 }}>{t('CEP')}</label>
                     <input
-                      placeholder="CEP"
+                      placeholder={t('CEP')}
                       type="text"
                       className="input-cadastro"
                       value={cep}
@@ -277,35 +282,35 @@ const Cadastro: React.FC = () => {
                     />
                   </div>
                   <div className="field-col col-w-140">
-                    <label style={{ fontWeight: 600, fontSize: 13 }}>Estado</label>
-                    <input placeholder="Estado" type="text" className="input-cadastro" value={estado} onChange={e => setEstado(e.target.value)} />
+                    <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Estado')}</label>
+                    <input placeholder={t('Estado')} type="text" className="input-cadastro" value={estado} onChange={e => setEstado(e.target.value)} />
                   </div>
                   <div className="field-col col-w-100">
-                    <label style={{ fontWeight: 600, fontSize: 13 }}>Cidade</label>
-                    <input placeholder="Cidade" type="text" className="input-cadastro" value={cidade} onChange={e => setCidade(e.target.value)} />
+                    <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Cidade')}</label>
+                    <input placeholder={t('Cidade')} type="text" className="input-cadastro" value={cidade} onChange={e => setCidade(e.target.value)} />
                   </div>
                 </div>
 
                 {/* Bottom row: Rua (big), Nº (small), Bairro (big) */}
                 <div className="row-fields" style={{ marginTop: 10 }}>
                   <div className="field-col col-w-220">
-                    <label style={{ fontWeight: 600, fontSize: 13 }}>Rua</label>
-                    <input placeholder="Rua" type="text" className="input-cadastro" value={rua} onChange={e => setRua(e.target.value)} required />
+                    <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Rua')}</label>
+                    <input placeholder={t('Rua')} type="text" className="input-cadastro" value={rua} onChange={e => setRua(e.target.value)} required />
                   </div>
                   <div className="field-col col-w-70">
-                    <label style={{ fontWeight: 600, fontSize: 13 }}>Nº</label>
-                    <input placeholder="Número" type="text" className="input-cadastro" value={numero} onChange={e => setNumero(e.target.value)} required />
+                    <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Nº')}</label>
+                    <input placeholder={t('Número')} type="text" className="input-cadastro" value={numero} onChange={e => setNumero(e.target.value)} required />
                   </div>
                   <div className="field-col col-w-160">
-                    <label style={{ fontWeight: 600, fontSize: 13 }}>Bairro</label>
-                    <input placeholder="Bairro" type="text" className="input-cadastro" value={bairro} onChange={e => setBairro(e.target.value)} required />
+                    <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Bairro')}</label>
+                    <input placeholder={t('Bairro')} type="text" className="input-cadastro" value={bairro} onChange={e => setBairro(e.target.value)} required />
                   </div>
                 </div>
               </div>
 
               <div className="input-group">
                 <label className="input-label">
-                  Serviços que trabalha
+                  {t('Serviços que trabalha')}
                 </label>
                 <div className="servicos-chips-group">
                   {servicosOpcoes.map((serv) => (
@@ -328,10 +333,10 @@ const Cadastro: React.FC = () => {
             <>
               <div className="input-group">
                 <label className="input-label">
-                  Telefone <span style={{color:'#e74c3c'}}>*</span>
+                  {t('Telefone')} <span style={{color:'#e74c3c'}}>*</span>
                 </label>
                 <input
-                  placeholder="(xx) xxxxx-xxxx"
+                  placeholder={t('(xx) xxxxx-xxxx')}
                   type="text"
                   className="input-cadastro"
                   value={telefone}
@@ -342,10 +347,10 @@ const Cadastro: React.FC = () => {
               </div>
               <div className="input-group">
                 <label className="input-label">
-                  Data de nascimento <span style={{color:'#e74c3c'}}>*</span>
+                  {t('Data de nascimento')} <span style={{color:'#e74c3c'}}>*</span>
                 </label>
                 <input
-                  placeholder="dd/mm/aaaa"
+                  placeholder={t('dd/mm/aaaa')}
                   type="text"
                   className="input-cadastro"
                   value={nascimento}
@@ -355,7 +360,7 @@ const Cadastro: React.FC = () => {
                 {erros.nascimento && <span style={{color:'#e74c3c',fontSize:13}}>{erros.nascimento}</span>}
               </div>
               <div className="input-group">
-                <label className="input-label">Foto de perfil (opcional)</label>
+                <label className="input-label">{t('Foto de perfil (opcional)')}</label>
                 <div
                   className="foto-upload-group"
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -383,32 +388,32 @@ const Cadastro: React.FC = () => {
           <div className="flex-confirm">
             <div className="flex-confirm-esquerda">
               <button type="button" onClick={() => navigate("/login") } className="link-login" style={{background:'none',border:'none',padding:0,margin:0,display:'flex',alignItems:'center',gap:4,cursor:'pointer'}}>
-                Já tenho conta
+                {t('Já tenho conta')}
               </button>
             </div>
             <div className="flex-confirm-direita">
               {step === 1 && (
                 <button type="button" id="continuar-cadastro" onClick={() => setStep(2)}>
-                  Próximo
+                  {t('Próximo')}
                 </button>
               )}
               {step === 2 && (
                 <div style={{ display: 'flex', gap: 12 }}>
                   <button type="button" id="continuar-cadastro" onClick={() => setStep(1)}>
-                    Voltar
+                    {t('Voltar')}
                   </button>
                   <button type="button" id="continuar-cadastro" onClick={() => setStep(3)}>
-                    Próximo
+                    {t('Próximo')}
                   </button>
                 </div>
               )}
               {step === 3 && (
                 <div style={{ display: 'flex', gap: 12 }}>
                   <button type="button" id="continuar-cadastro" onClick={() => setStep(2)}>
-                    Voltar
+                    {t('Voltar')}
                   </button>
                   <button type="submit" id="continuar-cadastro">
-                    Cadastrar
+                    {t('Cadastrar')}
                   </button>
                 </div>
               )}
@@ -416,8 +421,8 @@ const Cadastro: React.FC = () => {
           </div>
           <div className="cadastro-footer">
             <p>
-              Ao se cadastrar, você concorda com nossos{" "}
-              <a href="/termos-de-uso">Termos de Uso</a>.
+              {t('Ao se cadastrar, você concorda com nossos')}{" "}
+              <a href="/termos-de-uso">{t('Termos de Uso')}</a>.
             </p>
           </div>
           {mensagem && (

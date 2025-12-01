@@ -1,3 +1,4 @@
+import './i18n';
 import Contacts from './pages/Contacts';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";

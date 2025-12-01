@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next'; // ← ADICIONE ESTA LINHA
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import '../css/cadastro.css';
 
 const Login: React.FC = () => {
+  const { t } = useTranslation(); // ← ADICIONE ESTE HOOK
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -11,7 +13,6 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Use the same body class as cadastro so layouts and background match exactly
     document.body.classList.add('body-cadastro');
     return () => {
       document.body.classList.remove('body-cadastro');
@@ -22,8 +23,8 @@ const Login: React.FC = () => {
     e.preventDefault();
     setMensagem('');
     try {
-  const apiUrl = process.env.NODE_ENV === 'development' ? '/api/auth/login' : 'http://localhost:5000/api/auth/login';
-  const response = await fetch(apiUrl, {
+      const apiUrl = process.env.NODE_ENV === 'development' ? '/api/auth/login' : 'http://localhost:5000/api/auth/login';
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,17 +32,15 @@ const Login: React.FC = () => {
         body: JSON.stringify({ email, senha }),
       });
       const data = await response.json();
-        if (response.ok) {
-        setMensagem('Login realizado com sucesso!');
-        // Salva dados do usuário no localStorage
+      if (response.ok) {
+        setMensagem(t('Login realizado com sucesso!'));
         localStorage.setItem('bizzy_user', JSON.stringify(data.user));
-        // Redireciona para o perfil (rota /profile)
         setTimeout(() => navigate('/profile'), 1000);
       } else {
-        setMensagem(`Erro: ${data.message}`);
+        setMensagem(`${t('Erro')}: ${data.message}`);
       }
     } catch (error) {
-      setMensagem('Erro ao conectar com o servidor.');
+      setMensagem(t('Erro ao conectar com o servidor.'));
     }
   };
 
@@ -54,16 +53,16 @@ const Login: React.FC = () => {
 
         <form className="form-cadastro" onSubmit={handleLogin}>
           <div className="cadastro-header">
-            <h1 id="title-cadastro">Bem-vindo de volta!</h1>
-            <p className="cadastro-subtitle">Entre com suas credenciais para acessar sua conta</p>
+            <h1 id="title-cadastro">{t('Bem-vindo de volta!')}</h1>
+            <p className="cadastro-subtitle">{t('Entre com suas credenciais para acessar sua conta.')}</p>
           </div>
 
           <div className="input-group">
             <label className="input-label">
-              E-mail
+              {t('E-mail')}
             </label>
             <input
-              placeholder="Digite seu e-mail..."
+              placeholder={t('Digite seu e-mail')}
               type="email"
               className="input-cadastro"
               id="email-login"
@@ -75,11 +74,11 @@ const Login: React.FC = () => {
 
           <div className="input-group">
             <label className="input-label">
-              Senha
+              {t('Senha')}
             </label>
             <div className="password-input-wrapper">
               <input
-                placeholder="Digite sua senha..."
+                placeholder={t('Digite sua senha')}
                 type={showPassword ? 'text' : 'password'}
                 className="input-cadastro"
                 id="senha-login"
@@ -99,20 +98,20 @@ const Login: React.FC = () => {
           <div className="flex-confirm">
             <div className="flex-confirm-esquerda">
               <a onClick={() => navigate('/cadastro')} className="link-login" style={{background:'none',border:'none',padding:0,margin:0,display:'flex',alignItems:'center',gap:4,cursor:'pointer'}}>
-                Não tenho conta
+                {t('Não tenho conta')}
               </a>
             </div>
 
             <div className="flex-confirm-direita">
               <button type="submit" id="continuar-cadastro">
-                Entrar
+                {t('Entrar')}
               </button>
             </div>
           </div>
 
           <div className="cadastro-footer">
             <a href="#" className="forgot-password">
-              Esqueci minha senha
+              {t('Esqueci minha senha')}
             </a>
           </div>
           {mensagem && (
