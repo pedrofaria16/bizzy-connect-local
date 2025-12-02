@@ -1,5 +1,6 @@
-import { Search, Bell, MessageCircle, User, Wallet } from "lucide-react";
+import { Search, Bell, MessageCircle, User, Wallet, Globe } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import i18n from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { apiJson } from '@/lib/api';
 import { useNavigate, useLocation } from "react-router-dom";
@@ -15,6 +16,7 @@ const Header = () => {
   try { storedUser = raw ? JSON.parse(raw) : null; } catch(e) { storedUser = null; }
 
   const [menuAberto, setMenuAberto] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const [headerSearch, setHeaderSearch] = useState<string>("");
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
@@ -58,6 +60,7 @@ const Header = () => {
       const target = e.target as Node | null;
       if (target && menuRef.current.contains(target)) return;
       setMenuAberto(false);
+      setLangOpen(false);
     }
     document.addEventListener('mousedown', handleDocClick);
     return () => document.removeEventListener('mousedown', handleDocClick);
@@ -159,6 +162,7 @@ const Header = () => {
                     <span className="flex-1">{t("Carteira")}</span>
                   </button>
                 </li>
+
                 <li>
                   <button className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm" onClick={() => { setMenuAberto(false); navigate("/sobre-nos"); }}>
                     <span className="w-4 h-4" />
@@ -176,6 +180,38 @@ const Header = () => {
                     <span className="w-4 h-4" />
                     <span className="flex-1">{t("Termos de Uso")}</span>
                   </button>
+                </li>
+                <li>
+                  <div className="relative">
+                    <button
+                      className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm"
+                      onClick={() => { setLangOpen(v => !v); }}
+                      onMouseEnter={() => setLangOpen(true)}
+                      onMouseLeave={() => setLangOpen(false)}
+                    >
+                      <span className="flex-1">{t("Idioma")}</span>
+                      <span className="w-4 h-4 flex items-center justify-center text-darker-gray"><Globe className="h-4 w-4" /></span>
+                    </button>
+
+                    {langOpen && (
+                      <div className="absolute left-0 top-full w-full bg-card border rounded shadow z-50" onMouseEnter={() => setLangOpen(true)} onMouseLeave={() => setLangOpen(false)}>
+                        <button
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+                          onClick={() => { i18n.changeLanguage('pt-BR'); setLangOpen(false); setMenuAberto(false); }}
+                        >
+                          Português (PT)
+                        </button>
+                        <button
+                          type="button"
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 text-sm"
+                          onClick={() => { i18n.changeLanguage('en'); setLangOpen(false); setMenuAberto(false); }}
+                        >
+                          English (EN)
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </li>
               </ul>
             </div>

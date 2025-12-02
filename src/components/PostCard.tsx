@@ -99,7 +99,7 @@ const PostCard = ({
   })();
 
   const badgeLabel = inferIsOffer ? t('Oferece') : t('Solicita');
-  const badgeClasses = inferIsOffer ? 'bg-amber-500 text-white hover:bg-amber-400' : 'bg-darker-gray text-primary-foreground';
+  const badgeClasses = inferIsOffer ? 'bg-gradient-accent text-white shadow-none ring-0' : 'bg-darker-gray text-primary-foreground shadow-none ring-0';
 
   return (
     <Card 
@@ -140,7 +140,7 @@ const PostCard = ({
               </div>
             </div>
             <Badge
-              variant={inferIsOffer ? 'default' : 'outline'}
+              variant="outline"
               className={badgeClasses}
             >
               {badgeLabel}

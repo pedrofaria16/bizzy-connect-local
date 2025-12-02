@@ -33,6 +33,7 @@ const Index = () => {
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Todos']);
   const [priceSort, setPriceSort] = useState<'asc' | 'desc' | null>(null);
+  const [offerFilter, setOfferFilter] = useState<'all' | 'request' | 'offer'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const location = useLocation();
   const navigate = useNavigate();
@@ -184,6 +185,14 @@ const Index = () => {
       const rawValor = p.valor ?? 0;
       const parsedValor = Number(String(rawValor).replace(',', '.'));
       const isRequest = !isNaN(parsedValor) && parsedValor > 0;
+      // Normalize post type from backend; accept both English and Portuguese variants
+      const rawType = (p.type || p.tipo) ? String(p.type || p.tipo).toLowerCase() : '';
+      let postType: 'request' | 'offer' | undefined;
+      if (rawType) {
+        if (rawType.includes('req') || rawType.includes('solicit') || rawType.includes('solicita') || rawType.includes('pedido')) postType = 'request';
+        else if (rawType.includes('off') || rawType.includes('ofere') || rawType.includes('oferta')) postType = 'offer';
+      }
+      if (!postType) postType = isRequest ? 'request' : 'offer';
       let km = NaN;
       if (coords && p.lat != null && p.lon != null) km = haversine(coords.lat, coords.lon, Number(p.lat), Number(p.lon));
 
@@ -205,7 +214,7 @@ const Index = () => {
         titleScore = 0;
       }
 
-      return { p, parsedValor, isRequest, km, titleScore, titleNorm };
+      return { p, parsedValor, isRequest, postType, km, titleScore, titleNorm };
     });
 
     const filteredByCategory = items.filter(({ p }) => {
@@ -218,28 +227,41 @@ const Index = () => {
       return false;
     });
 
-    const matches = q ? filteredByCategory.filter(it => it.titleNorm.includes(q)) : [];
-    const nonMatches = q ? filteredByCategory.filter(it => !it.titleNorm.includes(q)) : filteredByCategory;
+    // Apply offer/request filter
+    const filteredByOffer = filteredByCategory.filter(({ postType }) => {
+      if (!offerFilter || offerFilter === 'all') return true;
+      if (offerFilter === 'request') return postType === 'request';
+      if (offerFilter === 'offer') return postType === 'offer';
+      return true;
+    });
+
+    const matches = q ? filteredByOffer.filter(it => it.titleNorm.includes(q)) : [];
+    const nonMatches = q ? filteredByOffer.filter(it => !it.titleNorm.includes(q)) : filteredByOffer;
 
     const priceComparator = (a: any, b: any) => priceSort === 'asc' ? a.parsedValor - b.parsedValor : b.parsedValor - a.parsedValor;
 
     matches.sort((a, b) => {
       if (b.titleScore !== a.titleScore) return b.titleScore - a.titleScore;
-      if (priceSort) return priceComparator(a, b);
       return 0;
     });
 
-    if (priceSort) nonMatches.sort(priceComparator);
+    // Do not pre-sort nonMatches by price here; we'll apply a global price sort
+    // after we assemble the finalItems so price ordering and offer/type
+    // filtering are both applied together.
 
-    let finalItems = q ? [...matches, ...nonMatches] : filteredByCategory;
+    let finalItems = q ? [...matches, ...nonMatches] : filteredByOffer;
 
-    // when there's no search query, default ordering should be by creation time (newest first)
-    if (!q) {
-      if (priceSort) {
-        // if price sort is active, apply it
-        finalItems.sort((a: any, b: any) => priceSort === 'asc' ? a.parsedValor - b.parsedValor : b.parsedValor - a.parsedValor);
-      } else {
-        // otherwise sort by date (newest first). fallback to 0 when date invalid
+    // If price sort is requested, apply it globally to the filtered set
+    if (priceSort) {
+      finalItems.sort((a: any, b: any) => {
+        // handle NaN values gracefully by treating them as +Infinity so they appear last
+        const va = Number.isFinite(a.parsedValor) ? a.parsedValor : Number.POSITIVE_INFINITY;
+        const vb = Number.isFinite(b.parsedValor) ? b.parsedValor : Number.POSITIVE_INFINITY;
+        return priceSort === 'asc' ? va - vb : vb - va;
+      });
+    } else {
+      // when there's no price sort and no search query, default ordering should be by creation time (newest first)
+      if (!q) {
         finalItems.sort((a: any, b: any) => {
           const ta = a.p?.data ? new Date(a.p.data).getTime() : 0;
           const tb = b.p?.data ? new Date(b.p.data).getTime() : 0;
@@ -249,19 +271,19 @@ const Index = () => {
     }
 
       const backendBase = import.meta.env.DEV ? 'http://localhost:5000' : '';
-      return finalItems.map(({ p, parsedValor, isRequest, km }) => {
+      return finalItems.map(({ p, parsedValor, isRequest, postType, km }) => {
       const distanceStr = isNaN(km) ? '--' : formatDistance(km);
         // Normalize author's foto to a full URL when necessary (dev server serves uploads from backend)
         const userFotoRaw = p.User?.foto;
         const avatarSrc = userFotoRaw && userFotoRaw.startsWith('/uploads') ? `${backendBase}${userFotoRaw}` : userFotoRaw || undefined;
 
         const avgForUser = (p.User?.id && ratingsMap[p.User.id]) ? (ratingsMap[p.User.id].avg) : 0;
-        const postType = p.type || p.tipo || (isRequest ? "request" : "offer");
+        const resolvedType = postType || (isRequest ? "request" : "offer");
         return (
         <PostCard
           id={p.id}
           key={p.id}
-          type={postType as "request" | "offer"}
+          type={resolvedType as "request" | "offer"}
           username={p.User?.name || 'Anônimo'}
             // Always prefer the author's profile photo (prefix host in dev when needed).
             avatar={avatarSrc}
@@ -284,16 +306,18 @@ const Index = () => {
   })();
 
   return (
-    <div className="min-h-screen bg-background pt-28">
+    <div className="min-h-screen bg-background pt-16">
       <Header />
       <FilterBar
         selectedCategories={selectedCategories}
         onCategoriesChange={(cats) => setSelectedCategories(cats.length === 0 ? ['Todos'] : cats)}
         priceSort={priceSort}
         onPriceSortChange={(p) => setPriceSort(p)}
+        offerFilter={offerFilter}
+        onOfferFilterChange={(v) => setOfferFilter(v)}
       />
       
-      <main className="container mx-auto px-4 py-6 mt-8">
+      <main className="container mx-auto px-4 py-6 mt-6 sm:mt-8">
         <div className="max-w-4xl mx-auto space-y-4">
           {renderedPosts}
         </div>

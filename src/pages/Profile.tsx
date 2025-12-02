@@ -28,6 +28,7 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -288,18 +289,12 @@ const Profile = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/feed")}
             className="hover:bg-secondary profile-icon-back"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <button
-            className="sobrenos-back-btn profile-back-btn"
-            onClick={() => navigate(-1)}
-            aria-label={t('Voltar')}
-          >
-            ← {t('Voltar')}
-          </button>
+          
           <h1 className="text-xl font-bold text-foreground">{t('Perfil')}</h1>
         </div>
       </header>
@@ -621,8 +616,8 @@ const ServiceCard = ({
   service, 
   isOwnProfile, 
   onViewDetails, 
-  reviewsByServico, 
-  storedUser, 
+  reviewsByServico = {}, 
+  storedUser = null, 
   onMarkAsDone,
   t 
 }: any) => {
@@ -646,10 +641,9 @@ const ServiceCard = ({
   const currentUserId = storedUser?.id;
   const isContratado = currentUserId && Number(currentUserId) === Number(service.contratadoId);
   const contratanteConfirmed = !!service.contratanteConfirmou;
-  const contratanteReviewed = Array.isArray(reviewsByServico[service.id] || []) && 
-    (reviewsByServico[service.id] || []).some((r: any) => Number(r.fromUserId) === Number(service.contratanteId));
-  const trabalhadorReviewed = Array.isArray(reviewsByServico[service.id] || []) && 
-    (reviewsByServico[service.id] || []).some((r: any) => Number(r.fromUserId) === Number(service.contratadoId));
+  const serviceReviews = Array.isArray(reviewsByServico?.[service.id]) ? reviewsByServico[service.id] : [];
+  const contratanteReviewed = serviceReviews.some((r: any) => Number(r.fromUserId) === Number(service.contratanteId));
+  const trabalhadorReviewed = serviceReviews.some((r: any) => Number(r.fromUserId) === Number(service.contratadoId));
 
   let buttonText = t('Marcar como feito');
   let buttonDisabled = false;
@@ -753,11 +747,12 @@ const ReviewModal = ({ isOpen, onClose, reviewForm, onReviewFormChange, onSubmit
             ))}
           </select>
           <label className="block text-sm">{t('Comentário')}</label>
-          <textarea 
-            className="w-full p-2 mb-3 border rounded" 
-            value={reviewForm.comment} 
+          <Textarea
+            value={reviewForm.comment}
             onChange={(e) => onReviewFormChange({ ...reviewForm, comment: e.target.value })}
             rows={3}
+            maxLength={300}
+            className="mb-3"
           />
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={onClose}>

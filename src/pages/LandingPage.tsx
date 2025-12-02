@@ -105,8 +105,11 @@ function Hero() {
       <div className="hero-content">
         <h2>{t('Conectando quem precisa com quem faz')}</h2>
         <p>{t('Encontre profissionais qualificados para seus projetos ou ofereça seus serviços na maior rede social de trabalhos do Brasil.')}</p>
+        <Link to="/cadastro" className="btn btn-responsive">{t('Começar Agora')}</Link>
       </div>
+       
     </section>
+    
   );
 }
 

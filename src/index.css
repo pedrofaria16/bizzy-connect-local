@@ -148,6 +148,23 @@ All colors MUST be HSL.
   [class*="hover:bg-"]:hover {
     color: inherit !important;
   }
+
+  /* Exception: when the hover background is the primary/orange tone, show white text
+     so buttons with orange backgrounds remain readable on hover. Match common
+     Tailwind utility patterns like `hover:bg-primary`, `hover:bg-primary/90`,
+     `hover:bg-gradient-accent`, and `hover:bg-accent`. */
+  [class*="hover:bg-primary"]:hover,
+  [class*="hover:bg-gradient-accent"]:hover,
+  [class*="hover:bg-accent"]:hover {
+    color: hsl(var(--primary-foreground)) !important;
+  }
+
+  /* Prevent utility `hover:text-*` classes from changing text color unless the
+     element also defines a primary/orange hover background. This ensures hover
+     backgrounds darken slightly but text color stays the same in most cases. */
+  [class*="hover:text-"]:hover:not([class*="hover:bg-primary"]):not([class*="hover:bg-gradient-accent"]):not([class*="hover:bg-accent"]) {
+    color: inherit !important;
+  }
 }
 
 /* Menu opções (header) */

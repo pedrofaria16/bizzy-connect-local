@@ -221,17 +221,20 @@ nav ul li a {
   margin-top: 0;
   padding: 6rem 0;
   z-index: 2;
+  gap: 30px;
 }
 
 .hero h2 {
-  font-size: 4rem;
+  font-size: 5rem;
   /*padding-top: 150px;*/
   color: var(--white);
   font-weight: 800;
+  margin-right: 10vw;
+  line-height: 1.2;
 }
 
 .hero p {
-  font-size: 1.75rem;
+  font-size: 1.65rem;
   /*max-width: 1200px;*/
   margin: 0 auto 50px;
   color: var(--white);
@@ -532,6 +535,10 @@ footer {
   gap: 15px;
 }
 
+.btn-responsive {
+  display: none;
+}
+
 .social-links a {
   color: var(--white);
   text-decoration: none;
@@ -557,6 +564,14 @@ footer {
     align-items: center;
     justify-content: space-between;
     text-align: left;
+  }
+
+  .btn-responsive {
+    display: block;
+    background-color: var(--white);
+    padding: 10px 40px;
+    color: var(--black);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
   }
   
   /* hide the full nav and CTA on small screens in favor of a hamburger menu */
@@ -716,10 +731,22 @@ footer {
   /* Tighten hero spacing on small devices */
   .hero-content {
     margin-top: 60px;
-    margin-left: 4vw;
+    margin-left: 2vw !important;
+    margin-right: 10vw !important;
+    gap: 20px;
+    
   }
-  .hero p { font-size: 1rem; }
+  .hero p { 
+    font-size: 1rem; 
+    margin-bottom: 20px;
+    margin-right: 20vw !important;
+  }
   
+  .hero  h2 {
+    font-size: 40px;
+    line-height: 1;
+    margin-right: 20vw !important;
+  }
   .steps {
     flex-direction: column;
     gap: 40px;
@@ -734,4 +761,15 @@ footer {
   .dynamic-header nav ul li a {
     color: var(--black);
   }
+}
+
+@media (max-width: 425px) {
+  .hero-content {
+    padding: 4rem 0;
+  }
+
+  .hero h2 {
+    font-size: 40px;
+    margin-right: 10vw !important;
+  } 
 }

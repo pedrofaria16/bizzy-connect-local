@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { apiJson, apiFetch, getStoredUserId } from '@/lib/api';
 import { ArrowLeft, MapPin, Star, Clock, DollarSign, MessageCircle, Briefcase, Phone } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -76,6 +77,7 @@ const PostDetails = () => {
   };
   const currentUserId = getCurrentUserId();
   const isOwner = post && (post.userId || post.User?.id || post.authorId) ? Number(currentUserId) === Number(post.userId || post.User?.id || post.authorId) : false;
+  const { t } = useTranslation();
 
   if (loading) return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-destructive">{error}</div>;
@@ -193,7 +195,7 @@ const PostDetails = () => {
                 onClick={async () => {
                   try {
                     const id = getStoredUserId();
-                    if (!id) return alert('Faça login para enviar mensagem');
+                    if (!id) return alert(t('Faça login para enviar mensagem'));
                     const otherId = author.id || post.userId;
                     const conv = await apiJson('/api/chat/conversation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userAId: Number(id), userBId: otherId }) });
                     navigate(`/chat?conversationId=${conv.id}&toUserId=${otherId}`);
@@ -201,28 +203,28 @@ const PostDetails = () => {
                 }}
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
-                Enviar Mensagem
+                {t('Enviar Mensagem')}
               </Button>
 
               {/* Candidatar / Contratar flow with confirmation dialogs */}
               <AlertDialog>
-                <AlertDialogTrigger asChild>
+                  <AlertDialogTrigger asChild>
                   <Button 
                     variant="outline" 
                     className="flex-1 border-border"
                     disabled={!isOffer && hasApplied}
                   >
-                    {!isOffer && hasApplied ? 'Já se candidatou' : isOffer ? 'Contratar' : 'Candidatar-se'}
+                    {!isOffer && hasApplied ? t('Já se candidatou') : isOffer ? t('Contratar') : t('Candidatar-se')}
                   </Button>
                 </AlertDialogTrigger>
                 {!isOffer && hasApplied ? null : (
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>
-                        {isOffer ? 'Confirmar contratação' : 'Confirmar candidatura'}
+                        {isOffer ? t('Confirmar contratação') : t('Confirmar candidatura')}
                       </AlertDialogTitle>
                       <AlertDialogDescription>
-                        {isOffer ? 'Tem certeza que deseja contratar este profissional para o serviço?' : 'Tem certeza que deseja se candidatar a este serviço?'}
+                        {isOffer ? t('Tem certeza que deseja contratar este profissional para o serviço?') : t('Tem certeza que deseja se candidatar a este serviço?')}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -235,38 +237,38 @@ const PostDetails = () => {
                                 if (isOffer) {
                                 // contratar -> chamar novo endpoint /contratar
                                 const userId = getStoredUserId();
-                                if (!userId) return alert('Faça login para contratar.');
+                                if (!userId) return alert(t('Faça login para contratar.'));
                                 const res = await apiFetch(`/api/posts/${post.id}/contratar`, {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ contratanteId: Number(userId) })
                                 });
                                 const payload = await res.json().catch(() => ({}));
-                                if (!res.ok) return alert(payload.error || payload.message || 'Erro ao contratar');
-                                alert('Profissional contratado — notificação enviada.');
+                                if (!res.ok) return alert(payload.error || payload.message || t('Erro ao contratar'));
+                                alert(t('Profissional contratado — notificação enviada.'));
                                 // recarregar feed/página para atualizar listagem
                                 try { window.location.reload(); } catch (e) { navigate('/feed'); }
                               } else {
                                 // candidatar
                                 const userId = getStoredUserId();
-                                if (!userId) return alert('Faça login para se candidatar.');
+                                if (!userId) return alert(t('Faça login para se candidatar.'));
                                       const res = await apiFetch(`/api/posts/${post.id}/candidatar`, {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ userId: Number(userId) }),
                                 });
                                 const payload = await res.json().catch(() => ({}));
-                                if (!res.ok) return alert(payload.error || payload.message || 'Erro ao candidatar');
-                                alert('Candidatura enviada. O autor recebeu uma notificação.');
+                                if (!res.ok) return alert(payload.error || payload.message || t('Erro ao candidatar'));
+                                alert(t('Candidatura enviada. O autor recebeu uma notificação.'));
                                 setHasApplied(true);
                               }
                             } catch (e) {
                               console.error(e);
-                              alert(e.message || 'Erro na ação');
+                              alert(e.message || t('Erro na ação'));
                             }
                           }}
                         >
-                          Confirmar
+                          {t('Confirmar')}
                         </Button>
                       </AlertDialogAction>
                     </AlertDialogFooter>
@@ -297,27 +299,27 @@ const PostDetails = () => {
                       <div className="flex-1">
                         <p className="font-semibold text-foreground">{user?.name || 'Usuário'}</p>
                         <p className="text-xs text-muted-foreground">
-                          {cand.status === 'aceito' ? '✓ Contratado' : cand.status === 'recusado' ? '✗ Recusado' : 'Pendente'}
+                          {cand.status === 'aceito' ? t('Contratado') : cand.status === 'recusado' ? t('Recusado') : t('Pendente')}
                         </p>
                       </div>
                     </div>
                     <div className="flex gap-2">
                       {!isSelected && cand.status === 'pendente' && (
                         <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                            <AlertDialogTrigger asChild>
                             <Button size="sm" className="bg-primary hover:bg-primary-light">
-                              Contratar
+                              {t('Contratar')}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Confirmar contratação</AlertDialogTitle>
+                              <AlertDialogTitle>{t('Confirmar contratação')}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Tem certeza que deseja contratar {user?.name}?
+                                {t('Tem certeza que deseja contratar {{name}}?', { name: user?.name })}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogCancel>{t('Cancelar')}</AlertDialogCancel>
                               <AlertDialogAction asChild>
                                 <Button
                                   className="bg-primary"
@@ -329,8 +331,8 @@ const PostDetails = () => {
                                         body: JSON.stringify({ candidaturaId: cand.id })
                                       });
                                       const payload = await res.json().catch(() => ({}));
-                                      if (!res.ok) return alert(payload.error || payload.message || 'Erro ao contratar');
-                                      alert('Candidato contratado com sucesso!');
+                                      if (!res.ok) return alert(payload.error || payload.message || t('Erro ao contratar'));
+                                      alert(t('Candidato contratado com sucesso!'));
                                       // Atualizar estado local
                                       setCandidatos(prev => 
                                         prev.map(c => c.id === cand.id ? { ...c, status: 'aceito' } : c)
@@ -338,11 +340,11 @@ const PostDetails = () => {
                                       setPost((p: any) => ({ ...p, selecionadoId: user?.id, status: 'em andamento' }));
                                     } catch (e) {
                                       console.error(e);
-                                      alert(e.message || 'Erro ao contratar');
+                                      alert(e.message || t('Erro ao contratar'));
                                     }
                                   }}
                                 >
-                                  Confirmar
+                                  {t('Confirmar')}
                                 </Button>
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -350,7 +352,7 @@ const PostDetails = () => {
                         </AlertDialog>
                       )}
                       {isSelected && (
-                        <Badge className="bg-primary">Selecionado</Badge>
+                        <Badge className="bg-primary">{t('Selecionado')}</Badge>
                       )}
                     </div>
                   </div>

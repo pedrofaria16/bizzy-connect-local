@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef, ChangeEvent } from "react";
-import { useTranslation } from 'react-i18next'; // ← ADICIONADO
-import i18n from 'i18next'; // ← ADICIONADO
+import React, { useState, useEffect, ChangeEvent } from "react";
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Image as ImageIcon, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,8 +38,6 @@ function formatarData(valor: string) {
 
 const EditProfile: React.FC = () => {
   const { t } = useTranslation();
-  const [langMenuOpen, setLangMenuOpen] = useState(false);
-  const langMenuRef = useRef<HTMLDivElement | null>(null);
 
   const navigate = useNavigate();
   const [cepLocked, setCepLocked] = useState(false);
@@ -147,7 +144,7 @@ const EditProfile: React.FC = () => {
       }
       localStorage.setItem('bizzy_user', JSON.stringify(updatedUser));
       toast.success(t('Perfil atualizado com sucesso'));
-      navigate('/feed');
+      navigate('/profile');
     } catch (err) {
       console.error(err);
       toast.error(t('Erro ao conectar com servidor'));
@@ -156,21 +153,13 @@ const EditProfile: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    function onDocClick(e: MouseEvent) {
-      if (!langMenuRef.current) return;
-      if (!(e.target instanceof Node)) return;
-      if (!langMenuRef.current.contains(e.target)) setLangMenuOpen(false);
-    }
-    if (langMenuOpen) document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, [langMenuOpen]);
+  
 
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b border-border bg-card">
         <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/feed')} className="hover:bg-secondary">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/profile')} className="hover:bg-secondary">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-xl font-bold text-foreground">{t('Editar Perfil')}</h1>
@@ -282,33 +271,7 @@ const EditProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Botão "IDIOMA" — um pouco abaixo da foto */}
-            <div className="mt-6 flex justify-center">
-              <div className="relative" ref={langMenuRef}>
-                <Button type="button" variant="outline" onClick={() => setLangMenuOpen(v => !v)}>
-                  {t('Idioma')}
-                </Button>
-
-                {langMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow z-50">
-                    <button
-                      type="button"
-                      className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                      onClick={() => { i18n.changeLanguage('pt-BR'); setLangMenuOpen(false); }}
-                    >
-                      PT-BR
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full text-left px-3 py-2 hover:bg-gray-100"
-                      onClick={() => { i18n.changeLanguage('en'); setLangMenuOpen(false); }}
-                    >
-                      INGLES
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+            
 
             <div className="flex gap-2">
               <Button type="submit" className="bg-primary" disabled={saving}>{saving ? t('Salvando...') : t('Salvar')}</Button>

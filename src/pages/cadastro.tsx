@@ -210,6 +210,7 @@ const Cadastro: React.FC = () => {
                   className="input-cadastro"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
+                  maxLength={100}
                   required
                 />
               </div>
@@ -223,6 +224,7 @@ const Cadastro: React.FC = () => {
                   className="input-cadastro"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  maxLength={100}
                   required
                 />
               </div>
@@ -237,6 +239,7 @@ const Cadastro: React.FC = () => {
                     className="input-cadastro"
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
+                    maxLength={64}
                     required
                   />
                   <button
@@ -257,6 +260,7 @@ const Cadastro: React.FC = () => {
                   className="input-cadastro"
                   value={cpf}
                   onChange={(e) => setCpf(e.target.value)}
+                  maxLength={14}
                   required
                 />
               </div>
@@ -279,15 +283,16 @@ const Cadastro: React.FC = () => {
                       value={cep}
                       onChange={e => setCep(e.target.value)}
                       onBlur={() => buscarCep(cep)}
+                      maxLength={9}
                     />
                   </div>
                   <div className="field-col col-w-140">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Estado')}</label>
-                    <input placeholder={t('Estado')} type="text" className="input-cadastro" value={estado} onChange={e => setEstado(e.target.value)} />
+                    <input placeholder={t('Estado')} type="text" className="input-cadastro" value={estado} onChange={e => setEstado(e.target.value)} maxLength={2} />
                   </div>
                   <div className="field-col col-w-100">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Cidade')}</label>
-                    <input placeholder={t('Cidade')} type="text" className="input-cadastro" value={cidade} onChange={e => setCidade(e.target.value)} />
+                    <input placeholder={t('Cidade')} type="text" className="input-cadastro" value={cidade} onChange={e => setCidade(e.target.value)} maxLength={100} />
                   </div>
                 </div>
 
@@ -295,15 +300,15 @@ const Cadastro: React.FC = () => {
                 <div className="row-fields" style={{ marginTop: 10 }}>
                   <div className="field-col col-w-220">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Rua')}</label>
-                    <input placeholder={t('Rua')} type="text" className="input-cadastro" value={rua} onChange={e => setRua(e.target.value)} required />
+                    <input placeholder={t('Rua')} type="text" className="input-cadastro" value={rua} onChange={e => setRua(e.target.value)} maxLength={120} required />
                   </div>
                   <div className="field-col col-w-70">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Nº')}</label>
-                    <input placeholder={t('Número')} type="text" className="input-cadastro" value={numero} onChange={e => setNumero(e.target.value)} required />
+                    <input placeholder={t('Número')} type="text" className="input-cadastro" value={numero} onChange={e => setNumero(e.target.value)} maxLength={10} required />
                   </div>
                   <div className="field-col col-w-160">
                     <label style={{ fontWeight: 600, fontSize: 13 }}>{t('Bairro')}</label>
-                    <input placeholder={t('Bairro')} type="text" className="input-cadastro" value={bairro} onChange={e => setBairro(e.target.value)} required />
+                    <input placeholder={t('Bairro')} type="text" className="input-cadastro" value={bairro} onChange={e => setBairro(e.target.value)} maxLength={80} required />
                   </div>
                 </div>
               </div>
@@ -341,6 +346,7 @@ const Cadastro: React.FC = () => {
                   className="input-cadastro"
                   value={telefone}
                   onChange={e => setTelefone(formatarTelefone(e.target.value))}
+                  maxLength={16}
                   required
                 />
                 {erros.telefone && <span style={{color:'#e74c3c',fontSize:13}}>{erros.telefone}</span>}
@@ -355,6 +361,7 @@ const Cadastro: React.FC = () => {
                   className="input-cadastro"
                   value={nascimento}
                   onChange={e => setNascimento(formatarData(e.target.value))}
+                  maxLength={10}
                   required
                 />
                 {erros.nascimento && <span style={{color:'#e74c3c',fontSize:13}}>{erros.nascimento}</span>}
