@@ -8,32 +8,32 @@ import "../css/footer.css"
 const equipe = [
   {
     nome: "Alice de Paulo Pinheiro",
-    img: "src/assets/img/alice.jpg",
+    img: "src/assets/img/alice-foto.jpg",
     alt: "Alice",
   },
   {
     nome: "Guilherme dos Santos Gonsalves",
-    img: "https://agrafica.com.br/wp-content/uploads/2016/01/resolucao_300dpi.jpg",
+    img: "src/assets/img/simon.jpg",
     alt: "Guilherme",
   },
   {
     nome: "Luiza Nissola Pereira",
-    img: "https://dus6dayednven.cloudfront.net/app/uploads/2022/05/1-DSC00855-Editar_baja.jpg",
+    img: "src/assets/img/luiza.jpg",
     alt: "Luiza",
   },
   {
     nome: "Miguel Lourenço Camargo",
-    img: "https://rapgol.com.br/wp-content/uploads/2024/05/Oruam.jpg",
+    img: "src/assets/img/miguel.jpg",
     alt: "Miguel",
   },
   {
     nome: "Pedro Faria de Oliveira",
-    img: "https://cdn6.campograndenews.com.br/uploads/noticias/2021/01/31/6016b9324880a.jpg",
+    img: "src/assets/img/pedro.jpg",
     alt: "Pedro",
   },
   {
     nome: "Vinicius Ferreira Monteiro",
-    img: "https://media.licdn.com/dms/image/v2/C4D12AQHBwfCGEWIqvg/article-cover_image-shrink_600_2000/article-cover_image-shrink_600_2000/0/1611075796243?e=2147483647&v=beta&t=GHCaODwEcJ7lSryvp85xiXjb2g8WVXNa0rbyg8hYn6w",
+    img: "src/assets/img/vinicius.jpg",
     alt: "Vinicius",
   },
 ];
